@@ -142,6 +142,10 @@ class Command(BaseCommand):
             clinicians = self._seed_users(facilities)
             self._seed_eval_cases(facilities, clinicians, demo_clock)
 
+        from accounts.system_settings import ensure_default_settings
+
+        ensure_default_settings()
+
         self.stdout.write(self.style.SUCCESS("bootstrap_demo complete (idempotent)."))
         self.stdout.write(
             "Disclaimer: Hackathon prototype — synthetic data — not for clinical use."

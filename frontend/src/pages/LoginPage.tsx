@@ -2,6 +2,7 @@ import { FormEvent, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/auth/AuthContext";
 import { SiteFooter } from "@/components/SiteFooter";
+import { HeroBackdrop } from "@/components/HeroBackdrop";
 
 export function LoginPage() {
   const { user, login, loading } = useAuth();
@@ -32,20 +33,8 @@ export function LoginPage() {
       </div>
 
       <div className="flex-1 grid lg:grid-cols-2">
-        <section className="relative hidden lg:block min-h-full">
-          <img
-            src="/images/hospital-lobby.png"
-            alt="Clinical facility interior"
-            className="absolute inset-0 h-full w-full object-cover"
-          />
-          <div
-            className="absolute inset-0"
-            style={{
-              background:
-                "linear-gradient(160deg, rgba(11,36,48,0.88) 15%, rgba(10,107,111,0.55) 100%)",
-            }}
-          />
-          <div className="relative z-10 flex h-full flex-col justify-between p-12 text-white">
+        <HeroBackdrop className="hidden lg:block min-h-full">
+          <div className="flex h-full flex-col justify-between p-12 text-white">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/60 mb-4">
                 Clinical decision support
@@ -74,7 +63,7 @@ export function LoginPage() {
               ))}
             </div>
           </div>
-        </section>
+        </HeroBackdrop>
 
         <section className="flex flex-col justify-center px-6 py-12 sm:px-12 bg-rg-bg">
           <div className="w-full max-w-md mx-auto rg-fade-up">

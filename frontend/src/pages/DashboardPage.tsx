@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { referralsApi } from "@/api/client";
 import { StatusBadge } from "@/components/StatusBadge";
+import { HeroBackdrop } from "@/components/HeroBackdrop";
 
 export function DashboardPage() {
   const [search, setSearch] = useState("");
@@ -58,20 +59,14 @@ export function DashboardPage() {
             </Link>
           </div>
         </div>
-        <div className="relative min-h-[200px] border-t lg:border-t-0 lg:border-l border-rg-border">
-          <img
-            src="/images/hospital-lobby.png"
-            alt="Facility interior"
-            className="absolute inset-0 h-full w-full object-cover"
-          />
-          <div className="absolute inset-0 bg-[#0b2430]/45" />
-          <div className="absolute bottom-0 left-0 right-0 p-5 text-white">
+        <HeroBackdrop className="relative min-h-[200px] border-t lg:border-t-0 lg:border-l border-rg-border">
+          <div className="absolute bottom-0 left-0 right-0 p-5 text-white z-10">
             <p className="text-xs uppercase tracking-[0.14em] text-white/70">Context</p>
             <p className="text-sm font-medium mt-1">
               Synthetic environment · service-level availability only
             </p>
           </div>
-        </div>
+        </HeroBackdrop>
       </section>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">

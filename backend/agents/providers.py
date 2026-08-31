@@ -8,6 +8,12 @@ from typing import Any
 from django.conf import settings
 from pydantic import BaseModel, Field, ValidationError
 
+from accounts.system_settings import get_system_setting
+
+
+def _cfg(name: str) -> str:
+    return get_system_setting(name) or getattr(settings, name, "") or ""
+
 
 class FactExtractionResult(BaseModel):
     summary: str = Field(description="Brief extraction summary")
@@ -51,9 +57,9 @@ class LiveProvider(Provider):
     is_mock = False
 
     def __init__(self) -> None:
-        self.model_name = settings.LLM_MODEL or ""
+        self.model_name = _cfg("LLM_MODEL")
         self.api_key = settings.LLM_API_KEY or ""
-        self.base_url = settings.LLM_BASE_URL or "https://api.openai.com/v1"
+        self.base_url = _cfg("LLM_BASE_URL") or "https://api.openai.com/v1"
         if not self.api_key:
             raise RuntimeError(
                 "LLM_API_KEY is required for live mode. "
@@ -151,7 +157,7 @@ class ReplayProvider(Provider):
 
 
 def get_provider(mode: str, *, replay_artifact: dict[str, Any] | None = None) -> Provider:
-    mode = (mode or settings.LLM_PROVIDER or "mock").lower()
+    mode = (mode or _cfg("LLM_PROVIDER") or "mock").lower()
     if mode == "mock":
         return MockProvider()
     if mode == "replay":

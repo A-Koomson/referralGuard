@@ -3,7 +3,7 @@ from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 
 from referrals.models import AuditEvent
 
-from .models import User
+from .models import SystemSetting, User
 
 
 @admin.register(User)
@@ -64,3 +64,11 @@ class UserAdmin(DjangoUserAdmin):
             ),
             ip_address=request.META.get("REMOTE_ADDR"),
         )
+
+
+@admin.register(SystemSetting)
+class SystemSettingAdmin(admin.ModelAdmin):
+    list_display = ("key", "category", "editable", "is_secret", "updated_at")
+    list_filter = ("category", "editable", "is_secret")
+    search_fields = ("key", "label")
+    readonly_fields = ("updated_at",)

@@ -56,3 +56,22 @@ class User(AbstractBaseUser, PermissionsMixin):
     @property
     def is_super_admin(self) -> bool:
         return self.role == Role.SUPER_ADMIN or self.is_superuser
+
+
+class SystemSetting(models.Model):
+    """Editable prototype configuration (secrets remain in .env only)."""
+
+    key = models.CharField(max_length=64, unique=True)
+    value = models.TextField(blank=True)
+    label = models.CharField(max_length=128)
+    help_text = models.TextField(blank=True)
+    category = models.CharField(max_length=32, default="general")
+    is_secret = models.BooleanField(default=False)
+    editable = models.BooleanField(default=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["category", "key"]
+
+    def __str__(self) -> str:
+        return self.key

@@ -12,6 +12,7 @@ import { NewReferralPage } from "@/pages/NewReferralPage";
 import { PrintSummaryPage } from "@/pages/PrintSummaryPage";
 import { ReferralDetailPage } from "@/pages/ReferralDetailPage";
 import { AdminAgentsPage } from "@/pages/admin/AdminAgentsPage";
+import { AdminEvaluationPage } from "@/pages/admin/AdminEvaluationPage";
 import { AdminFacilitiesPage } from "@/pages/admin/AdminFacilitiesPage";
 import { AdminLayout } from "@/pages/admin/AdminLayout";
 import { AdminOverviewPage } from "@/pages/admin/AdminOverviewPage";
@@ -29,6 +30,24 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   if (loading) return <p className="p-8">Loading session…</p>;
   if (!user) return <Navigate to="/login" replace />;
+  return children;
+}
+
+function SuperAdminRoute({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useAuth();
+  if (loading) return <p className="p-8">Loading session…</p>;
+  if (!user) return <Navigate to="/login" replace />;
+  if (user.role !== "SUPER_ADMIN" && !user.email?.includes("admin@")) {
+    return (
+      <div className="rg-panel p-6">
+        <h1 className="text-lg font-semibold">Admin access required</h1>
+        <p className="text-sm text-rg-muted mt-2">
+          Sign in as super-admin (<code>admin@referralguard.local</code>) to view baseline, LLM
+          settings, and evaluation transparency.
+        </p>
+      </div>
+    );
+  }
   return children;
 }
 
@@ -54,8 +73,16 @@ export default function App() {
               <Route path="/facilities" element={<FacilitiesPage />} />
               <Route path="/facilities/:id" element={<FacilityDetailPage />} />
               <Route path="/availability" element={<AvailabilityPage />} />
-              <Route path="/admin" element={<AdminLayout />}>
+              <Route
+                path="/admin"
+                element={
+                  <SuperAdminRoute>
+                    <AdminLayout />
+                  </SuperAdminRoute>
+                }
+              >
                 <Route index element={<AdminOverviewPage />} />
+                <Route path="evaluation" element={<AdminEvaluationPage />} />
                 <Route path="referrals" element={<AdminReferralsPage />} />
                 <Route path="facilities" element={<AdminFacilitiesPage />} />
                 <Route path="agents" element={<AdminAgentsPage />} />

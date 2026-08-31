@@ -2,11 +2,12 @@ import { NavLink, Outlet } from "react-router-dom";
 
 const NAV = [
   { to: "/admin", label: "Overview", end: true },
+  { to: "/admin/evaluation", label: "Baseline & LLM" },
+  { to: "/admin/settings", label: "Settings" },
   { to: "/admin/referrals", label: "Referrals" },
   { to: "/admin/facilities", label: "Facilities" },
   { to: "/admin/agents", label: "Agent runs" },
   { to: "/admin/users", label: "Users" },
-  { to: "/admin/settings", label: "Settings" },
 ];
 
 export function AdminLayout() {

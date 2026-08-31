@@ -251,3 +251,89 @@ export type Facility = {
   is_fictional: boolean;
   capabilities?: FacilityCapability[];
 };
+
+export type BenchmarkSummary = {
+  micro_recall?: number;
+  micro_precision?: number;
+  mode?: string;
+  model_name?: string;
+  comparison?: {
+    baseline_micro_recall?: number;
+    agent_micro_recall?: number;
+    baseline_micro_precision?: number;
+    agent_micro_precision?: number;
+  };
+};
+
+export type BenchmarkCaseRow = {
+  case_id: string;
+  recall: number;
+  precision: number;
+  readiness_correct: boolean;
+};
+
+export type BenchmarkArtifact = {
+  summary?: BenchmarkSummary;
+  cases?: BenchmarkCaseRow[];
+};
+
+export type SystemSettingRow = {
+  key: string;
+  label: string;
+  help_text: string;
+  category: string;
+  value: string;
+  display_value: string;
+  editable: boolean;
+  is_secret: boolean;
+  configured: boolean;
+  updated_at: string;
+};
+
+export const adminApi = {
+  systemSettings: () =>
+    api<{
+      settings: SystemSettingRow[];
+      architecture_note: string;
+      env_fallback: Record<string, unknown>;
+    }>("/api/v1/auth/admin/system-settings/"),
+  patchSystemSettings: (settings: Record<string, string>) =>
+    api<{ updated: string[]; settings: SystemSettingRow[] }>(
+      "/api/v1/auth/admin/system-settings/",
+      { method: "PATCH", body: JSON.stringify(settings) },
+    ),
+  createSystemSetting: (body: {
+    key: string;
+    label?: string;
+    value?: string;
+    category?: string;
+    help_text?: string;
+  }) =>
+    api<SystemSettingRow>("/api/v1/auth/admin/system-settings/create/", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  benchmark: () =>
+    api<{
+      disclaimer: string;
+      primary_metric: string;
+      case_count: number;
+      current_llm: {
+        provider: string;
+        model: string;
+        base_url: string;
+        api_key_configured: boolean;
+      };
+      architecture: { baseline: string; agent: string; llm_role: string };
+      artifacts: {
+        comparison_live?: BenchmarkArtifact;
+        baseline_live?: BenchmarkArtifact;
+        agent_live?: BenchmarkArtifact;
+      };
+    }>("/api/v1/evaluation/benchmark/"),
+  runEvaluation: (method: "baseline" | "agent", mode: "mock" | "live") =>
+    api<{ status: string; method: string; mode: string }>("/api/v1/evaluation/run/", {
+      method: "POST",
+      body: JSON.stringify({ method, mode }),
+    }),
+};
