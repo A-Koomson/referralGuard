@@ -232,10 +232,13 @@ export const referralsApi = {
       method: "POST",
       body: JSON.stringify(body),
     }),
-  analyse: (id: string) =>
+  analyse: (id: string, body?: { referral_reason?: string }) =>
     api<{ referral: ReferralCase; findings_created: number }>(
       `/api/v1/referrals/${id}/analyse/`,
-      { method: "POST" },
+      {
+        method: "POST",
+        body: JSON.stringify(body || {}),
+      },
     ),
   findings: (id: string) => api<Finding[]>(`/api/v1/referrals/${id}/findings/`),
   resolveFinding: (

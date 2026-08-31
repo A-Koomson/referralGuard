@@ -29,6 +29,7 @@ export function ReferralDetailPage() {
   const [exportReason, setExportReason] = useState("");
   const [msg, setMsg] = useState<string | null>(null);
   const [selectedFacilityId, setSelectedFacilityId] = useState("");
+  const [reasonDraft, setReasonDraft] = useState("");
   const actionSuccess = useActionSuccess();
 
   const { data: matches, refetch: refetchMatches } = useQuery({
@@ -43,17 +44,39 @@ export function ReferralDetailPage() {
   });
 
   useEffect(() => {
+    if (data?.referral_reason != null) {
+      setReasonDraft(data.referral_reason);
+    }
+  }, [data?.referral_reason, data?.id]);
+
+  useEffect(() => {
     if (matches?.length && !selectedFacilityId) {
       setSelectedFacilityId(matches[0].facility);
     }
   }, [matches, selectedFacilityId]);
 
   const analyse = useMutation({
-    mutationFn: () => referralsApi.analyse(id),
-    onSuccess: () => {
+    mutationFn: async () => {
+      const trimmed = reasonDraft.trim();
+      const payload =
+        trimmed && trimmed !== (data?.referral_reason || "").trim()
+          ? { referral_reason: trimmed }
+          : undefined;
+      return referralsApi.analyse(id, payload);
+    },
+    onSuccess: (res) => {
+      qc.setQueryData(["referral", id], res.referral);
       void qc.invalidateQueries({ queryKey: ["referral", id] });
       actionSuccess.trigger("analyse");
-      setMsg("Analysis complete.");
+      if (res.referral.status === "READY_FOR_MATCHING") {
+        setMsg("Analysis complete — no blocking findings. Match facilities is unlocked.");
+      } else if (res.referral.status === "NEEDS_CLARIFICATION") {
+        setMsg(
+          "Analysis finished, but critical/major findings are still open. Resolve them and save the referral reason, then run analysis again.",
+        );
+      } else {
+        setMsg("Analysis complete.");
+      }
     },
     onError: (e: Error) => setMsg(e.message),
   });
@@ -173,7 +196,7 @@ export function ReferralDetailPage() {
   const gates = referralWorkflowGates(gateCtx);
   const blockers = getWorkflowBlockers({
     ...gateCtx,
-    referral_reason: data.referral_reason,
+    referral_reason: reasonDraft || data.referral_reason,
   });
 
   const acceptGate: GateResult =
@@ -214,6 +237,8 @@ export function ReferralDetailPage() {
             <ReferralReasonField
               referralId={id}
               value={data.referral_reason}
+              draft={reasonDraft}
+              onDraftChange={setReasonDraft}
               editable={data.status !== "ACCEPTED"}
               onSaved={(hint) => setMsg(hint)}
             />
@@ -272,7 +297,7 @@ export function ReferralDetailPage() {
                 pending={analyse.isPending}
                 pendingLabel="Running…"
                 success={actionSuccess.isSuccess("analyse")}
-                successLabel="Complete"
+                successLabel="Done"
                 onClick={() => analyse.mutate()}
               >
                 Run analysis
@@ -443,23 +468,22 @@ export function ReferralDetailPage() {
 function ReferralReasonField({
   referralId,
   value,
+  draft,
+  onDraftChange,
   editable,
   onSaved,
 }: {
   referralId: string;
   value: string;
+  draft: string;
+  onDraftChange: (v: string) => void;
   editable: boolean;
   onSaved: (msg: string) => void;
 }) {
   const qc = useQueryClient();
-  const [draft, setDraft] = useState(value);
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const { trigger, isSuccess } = useActionSuccess();
-
-  useEffect(() => {
-    setDraft(value);
-  }, [value]);
 
   async function save() {
     const trimmed = draft.trim();
@@ -473,7 +497,9 @@ function ReferralReasonField({
       await referralsApi.patch(referralId, { referral_reason: trimmed });
       void qc.invalidateQueries({ queryKey: ["referral", referralId] });
       trigger("save-reason");
-      onSaved("Referral reason saved. Click Run analysis to re-check documentation.");
+      onSaved(
+        "Referral reason saved. Click Run analysis to re-check documentation — Match facilities unlocks when there are no blocking findings.",
+      );
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Save failed");
     } finally {
@@ -492,12 +518,17 @@ function ReferralReasonField({
             id="referral-reason"
             className={`rg-input min-h-[72px] ${!draft.trim() ? "border-rg-warning" : ""}`}
             value={draft}
-            onChange={(e) => setDraft(e.target.value)}
+            onChange={(e) => onDraftChange(e.target.value)}
             placeholder="Enter the clinical reason for this emergency referral…"
           />
           {!draft.trim() ? (
             <p className="text-xs text-rg-warning">
-              Required for verification. Resolving a finding does not fill this field.
+              Required for verification. You can type here and click Run analysis — the reason is
+              saved automatically with analysis if needed.
+            </p>
+          ) : draft.trim() !== value.trim() ? (
+            <p className="text-xs text-rg-warning">
+              Unsaved changes — click Save, or Run analysis (saves automatically).
             </p>
           ) : null}
           <ActionButton

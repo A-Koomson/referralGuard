@@ -147,6 +147,25 @@ class ReferralViewSet(viewsets.ModelViewSet):
     def analyse(self, request, pk=None):
         """Start deterministic analysis (+ agent hook). Does not hold DB txn during LLM."""
         referral = self.get_object()
+
+        # Allow saving an edited referral reason in the same request (demo UX).
+        incoming_reason = request.data.get("referral_reason")
+        if isinstance(incoming_reason, str):
+            trimmed = incoming_reason.strip()
+            if trimmed and trimmed != (referral.referral_reason or "").strip():
+                if referral.status == ReferralStatus.ACCEPTED:
+                    raise ValidationError("Cannot edit a referral after acceptance.")
+                referral.referral_reason = trimmed
+                referral.save(update_fields=["referral_reason", "updated_at"])
+                AuditEvent.objects.create(
+                    actor=request.user,
+                    action="referral.update",
+                    object_type="ReferralCase",
+                    object_id=str(referral.id),
+                    after_summary="referral_reason updated via analyse",
+                    ip_address=request.META.get("REMOTE_ADDR"),
+                )
+
         try:
             if referral.status == ReferralStatus.DRAFT:
                 referral.transition_to(ReferralStatus.ANALYSING, actor=request.user)
@@ -172,6 +191,7 @@ class ReferralViewSet(viewsets.ModelViewSet):
         ).delete()
 
         # Deterministic checks outside long-lived write txn for LLM (LLM added later)
+        referral.refresh_from_db()
         findings = run_deterministic_checks(referral)
 
         # Optional agent pipeline (imported lazily). Never silently swap providers.
@@ -200,11 +220,17 @@ class ReferralViewSet(viewsets.ModelViewSet):
                 note="no blocking findings",
             )
 
+        referral.refresh_from_db()
         return Response(
             {
                 "referral": ReferralCaseSerializer(referral).data,
                 "findings_created": len(findings),
                 "agent": agent_summary,
+                "next_step": (
+                    "match_facilities"
+                    if referral.status == ReferralStatus.READY_FOR_MATCHING
+                    else "resolve_findings"
+                ),
                 "disclaimer": (
                     "Hackathon prototype — synthetic data — not for clinical use. "
                     "Documentation readiness is not medical clearance."

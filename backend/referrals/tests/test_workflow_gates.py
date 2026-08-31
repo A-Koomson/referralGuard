@@ -158,3 +158,46 @@ def test_accept_allowed_after_approval(referral, clinician, receiving):
     assert res.status_code == 201
     referral.refresh_from_db()
     assert referral.status == ReferralStatus.ACCEPTED
+
+
+@pytest.mark.django_db
+def test_analyse_with_reason_unlocks_matching(facility, clinician, monkeypatch):
+    """Saving reason via analyse body advances EVAL-style empty-reason case to ready."""
+    from referrals.models import ReferralDraft
+
+    monkeypatch.setenv("LLM_PROVIDER", "mock")
+    case = ReferralCase.objects.create(
+        synthetic_case_id="EVAL-REASON-UNLOCK",
+        creating_facility=facility,
+        created_by=clinician,
+        status=ReferralStatus.DRAFT,
+        urgency="EMERGENCY",
+        referral_reason="",
+        gestational_age_weeks=34.0,
+        clinician_confirmed_needs=["OB_CLINICIAN", "BLOOD_BANK"],
+        patient_display_label="Synthetic unlock case",
+    )
+    ReferralDraft.objects.create(
+        referral=case,
+        version=1,
+        structured_content={},
+        narrative="Missing reason fixture",
+    )
+    client = APIClient()
+    client.force_authenticate(user=clinician)
+
+    first = client.post(f"/api/v1/referrals/{case.id}/analyse/", {}, format="json")
+    assert first.status_code == 200
+    case.refresh_from_db()
+    assert case.status == ReferralStatus.NEEDS_CLARIFICATION
+
+    second = client.post(
+        f"/api/v1/referrals/{case.id}/analyse/",
+        {"referral_reason": "Postpartum haemorrhage unresponsive to first-line measures"},
+        format="json",
+    )
+    assert second.status_code == 200
+    case.refresh_from_db()
+    assert case.referral_reason.startswith("Postpartum")
+    assert case.status == ReferralStatus.READY_FOR_MATCHING
+    assert second.data["next_step"] == "match_facilities"
