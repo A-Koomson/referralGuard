@@ -1,0 +1,1 @@
+"""ReferralGuard Django project package."""

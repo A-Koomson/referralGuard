@@ -1,0 +1,48 @@
+{
+  "manifest_version": "1",
+  "title": "Provisional demonstration emergency maternity referral checklist",
+  "label": "PROVISIONAL — not verified against official GHS guidance",
+  "source_url": null,
+  "retrieved_date": null,
+  "checksum_sha256": null,
+  "usage_rights": "Internal hackathon demonstration only. Do not claim GHS verification.",
+  "disclaimer": "Rules were authored for prototype demonstration. They were NOT inspected against official Ghana Health Service guidance in this Cursor session.",
+  "rules": [
+    {
+      "id": "REQ-REASON",
+      "section": "Referral reason",
+      "severity": "CRITICAL",
+      "description": "Referral reason must be present and non-empty."
+    },
+    {
+      "id": "REQ-GA",
+      "section": "Pregnancy details",
+      "severity": "CRITICAL",
+      "description": "Gestational age must be documented when pregnancy is implied."
+    },
+    {
+      "id": "REQ-TX-TIME",
+      "section": "Treatments",
+      "severity": "CRITICAL",
+      "description": "Each administered treatment must include administration time."
+    },
+    {
+      "id": "REQ-NO-INVENT",
+      "section": "Evidence",
+      "severity": "CRITICAL",
+      "description": "Do not invent allergies as 'none' when undocumented; state absence."
+    },
+    {
+      "id": "REQ-CONTACT",
+      "section": "Receiving facility",
+      "severity": "MAJOR",
+      "description": "Document whether receiving facility was contacted (simulation)."
+    },
+    {
+      "id": "REQ-CITE",
+      "section": "Findings",
+      "severity": "CRITICAL",
+      "description": "Every finding must cite evidence or explicitly state absence."
+    }
+  ]
+}

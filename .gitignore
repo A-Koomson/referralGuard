@@ -1,0 +1,64 @@
+# ── Secrets & environment (never push) ───────────────────────────────────────
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+secrets/
+credentials/
+
+# ── Local-only notes (not for GitHub) ────────────────────────────────────────
+SUBMIT_NOW.md
+
+# ── Local database & backups ─────────────────────────────────────────────────
+backend/db.sqlite3
+backend/db.sqlite3.bak
+*.sqlite3.bak
+*.sqlite
+*.sqlite3
+*.sqlite3-journal
+*.sqlite3-wal
+*.sqlite3-shm
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# ── Runtime / uploads ────────────────────────────────────────────────────────
+backend/media/
+backend/staticfiles/
+uploads/
+synthetic-output/
+*.log
+logs/
+
+# ── Python ───────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+
+# ── Node / frontend build ────────────────────────────────────────────────────
+node_modules/
+frontend/dist/
+frontend/.vite/
+coverage/
+
+# ── IDE & OS ─────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/settings.json
+.cursor/
+*.local
+*.tmp
+*.swp

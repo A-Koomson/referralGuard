@@ -1,0 +1,211 @@
+/* ReferralGuard — professional clinical product
+   Deep teal chrome, warm paper content surface. */
+
+:root {
+  --rg-bg: #e9eef2;
+  --rg-surface: #ffffff;
+  --rg-ink: #0f1c24;
+  --rg-muted: #5a6d7a;
+  --rg-border: #c9d5de;
+  --rg-accent: #0a6b6f;
+  --rg-accent-hover: #085558;
+  --rg-accent-soft: #d9eef0;
+  --rg-navy: #0b2430;
+  --rg-navy-2: #123647;
+  --rg-gold: #c4a35a;
+  --rg-critical: #b42318;
+  --rg-critical-soft: #fef3f2;
+  --rg-warning: #b54708;
+  --rg-warning-soft: #fffaeb;
+  --rg-ok: #067647;
+  --rg-ok-soft: #ecfdf3;
+  --rg-focus: #0a6b6f;
+  --rg-banner-bg: #123647;
+  --rg-banner-fg: #d7e6ec;
+  --rg-font-sans: "IBM Plex Sans", "Segoe UI", sans-serif;
+  --rg-shadow: 0 1px 2px rgba(11, 36, 48, 0.06), 0 12px 28px rgba(11, 36, 48, 0.08);
+  --rg-radius: 10px;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    @apply antialiased;
+    font-family: var(--rg-font-sans);
+    color: var(--rg-ink);
+    background: var(--rg-bg);
+  }
+
+  body {
+    min-height: 100vh;
+    background:
+      radial-gradient(ellipse 90% 50% at 0% -10%, rgba(10, 107, 111, 0.09), transparent 55%),
+      radial-gradient(ellipse 70% 40% at 100% 0%, rgba(11, 36, 48, 0.06), transparent 50%),
+      var(--rg-bg);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--rg-focus);
+    outline-offset: 2px;
+  }
+
+  h1,
+  h2,
+  h3,
+  .font-display {
+    font-family: var(--rg-font-sans);
+    letter-spacing: -0.02em;
+    font-weight: 600;
+  }
+
+  img {
+    max-width: 100%;
+    display: block;
+  }
+}
+
+@layer components {
+  .rg-banner {
+    @apply w-full px-4 py-2 text-sm text-center border-b;
+    background: var(--rg-banner-bg);
+    border-color: rgba(255, 255, 255, 0.08);
+    color: var(--rg-banner-fg);
+  }
+
+  .rg-btn {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold
+      transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed;
+    background: var(--rg-accent);
+    color: #fff;
+    border-radius: var(--rg-radius);
+  }
+
+  .rg-btn:hover:not(:disabled) {
+    background: var(--rg-accent-hover);
+  }
+
+  .rg-btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold border
+      transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed;
+    border-color: var(--rg-border);
+    background: var(--rg-surface);
+    color: var(--rg-ink);
+    border-radius: var(--rg-radius);
+  }
+
+  .rg-btn-secondary:hover {
+    border-color: var(--rg-accent);
+    color: var(--rg-accent);
+  }
+
+  .rg-btn-on-dark {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold border
+      transition-colors;
+    border-color: rgba(255, 255, 255, 0.25);
+    color: #fff;
+    background: transparent;
+    border-radius: var(--rg-radius);
+  }
+
+  .rg-btn-on-dark:hover {
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  .rg-btn-danger {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold border
+      transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed;
+    border-color: #fecdca;
+    color: var(--rg-critical);
+    background: var(--rg-critical-soft);
+    border-radius: var(--rg-radius);
+  }
+
+  .rg-input {
+    @apply w-full px-3.5 py-2.5 text-sm border transition-colors;
+    border-color: var(--rg-border);
+    background: #fff;
+    border-radius: var(--rg-radius);
+  }
+
+  .rg-input:focus {
+    border-color: var(--rg-accent);
+    box-shadow: 0 0 0 3px rgba(10, 107, 111, 0.16);
+    outline: none;
+  }
+
+  .rg-label {
+    @apply block text-sm font-medium mb-1.5;
+    color: var(--rg-ink);
+  }
+
+  .rg-panel {
+    background: var(--rg-surface);
+    border: 1px solid var(--rg-border);
+    box-shadow: var(--rg-shadow);
+    border-radius: var(--rg-radius);
+  }
+
+  .rg-btn-danger:hover:not(:disabled) {
+    background: #fef2f2;
+  }
+
+  .rg-btn-disabled,
+  .rg-btn:disabled,
+  .rg-btn-secondary:disabled,
+  .rg-btn-danger:disabled {
+    background: #e8ecef !important;
+    color: #8b9499 !important;
+    border-color: #d4dde1 !important;
+    cursor: not-allowed;
+    opacity: 1;
+    box-shadow: none;
+  }
+
+  .rg-chip {
+    @apply inline-flex items-center px-2 py-0.5 text-xs font-semibold;
+    border-radius: 6px;
+  }
+
+  .rg-hero-photo {
+    border-radius: var(--rg-radius);
+    overflow: hidden;
+    border: 1px solid var(--rg-border);
+  }
+
+  .rg-fade-up {
+    animation: rgFadeUp 0.4s ease-out both;
+  }
+}
+
+@keyframes rgFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rg-fade-up {
+    animation: none;
+  }
+}
+
+@media print {
+  .rg-banner,
+  .rg-site-footer,
+  .rg-app-header,
+  .no-print {
+    display: none !important;
+  }
+
+  body {
+    background: #fff;
+  }
+}

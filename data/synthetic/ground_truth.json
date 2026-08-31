@@ -1,0 +1,106 @@
+{
+  "suite_id": "referralguard-eval-v1",
+  "frozen": true,
+  "case_count": 12,
+  "primary_metric": "critical_omission_and_contradiction_recall",
+  "disclaimer": "Synthetic cases only — not clinical efficacy evidence.",
+  "cases": [
+    {
+      "id": "EVAL-01",
+      "title": "Complete correct unusual referral (difficult negative)",
+      "expected_defects": [],
+      "expected_readiness": "ready",
+      "notes": "False-alarm stress case: complete and correct but unusual presentation."
+    },
+    {
+      "id": "EVAL-02",
+      "title": "Missing medication administration time",
+      "expected_defects": [
+        {"category": "MISSING", "severity": "CRITICAL", "code": "REQ-TX-TIME"}
+      ],
+      "expected_readiness": "not_ready"
+    },
+    {
+      "id": "EVAL-03",
+      "title": "Missing referral reason",
+      "expected_defects": [
+        {"category": "MISSING", "severity": "CRITICAL", "code": "REQ-REASON"}
+      ],
+      "expected_readiness": "not_ready"
+    },
+    {
+      "id": "EVAL-04",
+      "title": "Conflicting gestational age",
+      "expected_defects": [
+        {"category": "CONTRADICTION", "severity": "CRITICAL", "code": "REQ-GA"}
+      ],
+      "expected_readiness": "not_ready"
+    },
+    {
+      "id": "EVAL-05",
+      "title": "Incorrectly copied blood pressure",
+      "expected_defects": [
+        {"category": "CONTRADICTION", "severity": "CRITICAL", "code": "BP-CONFLICT"}
+      ],
+      "expected_readiness": "not_ready"
+    },
+    {
+      "id": "EVAL-06",
+      "title": "Allergy contradiction",
+      "expected_defects": [
+        {"category": "CONTRADICTION", "severity": "CRITICAL", "code": "ALLERGY"}
+      ],
+      "expected_readiness": "not_ready"
+    },
+    {
+      "id": "EVAL-07",
+      "title": "Mentioned but unattached laboratory result",
+      "expected_defects": [
+        {"category": "MISSING", "severity": "MAJOR", "code": "LAB-ATTACH"}
+      ],
+      "expected_readiness": "not_ready"
+    },
+    {
+      "id": "EVAL-08",
+      "title": "Treatment omitted from the referral",
+      "expected_defects": [
+        {"category": "MISSING", "severity": "CRITICAL", "code": "TX-OMITTED"}
+      ],
+      "expected_readiness": "not_ready"
+    },
+    {
+      "id": "EVAL-09",
+      "title": "Unsupported diagnosis statement",
+      "expected_defects": [
+        {"category": "UNSUPPORTED", "severity": "CRITICAL", "code": "DX-UNSUPPORTED"}
+      ],
+      "expected_readiness": "not_ready"
+    },
+    {
+      "id": "EVAL-10",
+      "title": "Receiving facility not contacted",
+      "expected_defects": [
+        {"category": "POLICY", "severity": "MAJOR", "code": "REQ-CONTACT"}
+      ],
+      "expected_readiness": "not_ready"
+    },
+    {
+      "id": "EVAL-11",
+      "title": "Verbose but clinically incomplete referral",
+      "expected_defects": [
+        {"category": "MISSING", "severity": "CRITICAL", "code": "INCOMPLETE"}
+      ],
+      "expected_readiness": "not_ready"
+    },
+    {
+      "id": "EVAL-12",
+      "title": "Multiple interacting failures",
+      "expected_defects": [
+        {"category": "MISSING", "severity": "CRITICAL", "code": "REQ-REASON"},
+        {"category": "MISSING", "severity": "CRITICAL", "code": "REQ-TX-TIME"},
+        {"category": "CONTRADICTION", "severity": "CRITICAL", "code": "BP-CONFLICT"}
+      ],
+      "expected_readiness": "not_ready"
+    }
+  ]
+}

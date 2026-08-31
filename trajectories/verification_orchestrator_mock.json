@@ -1,0 +1,48 @@
+{
+  "label": "MOCK - not an AI benchmark",
+  "pipeline_stage": "verification_orchestrator",
+  "provider": "mock",
+  "model_name": "mock-deterministic",
+  "prompt_version": "v1",
+  "case_id": "EVAL-03",
+  "trace_events": [
+    {
+      "sequence": 1,
+      "tool_or_action": "FactExtractionAgent",
+      "instruction_summary": "Extract documented facts only",
+      "sanitized_input": {"keys": ["case_id", "reason", "ga", "treatments", "observations"]},
+      "output_summary": "MOCK extraction — not an AI benchmark",
+      "is_retry": false,
+      "human_checkpoint": false
+    },
+    {
+      "sequence": 2,
+      "tool_or_action": "TimelineAgent",
+      "instruction_summary": "Order events",
+      "sanitized_input": {"event_count": 0},
+      "output_summary": "",
+      "is_retry": false
+    },
+    {
+      "sequence": 3,
+      "tool_or_action": "PolicyVerificationAgent",
+      "instruction_summary": "Apply provisional checklist (deterministic primary)",
+      "sanitized_input": {"manifest": "provisional_checklist_manifest.json"},
+      "output_summary": ""
+    },
+    {
+      "sequence": 4,
+      "tool_or_action": "ContradictionAgent",
+      "instruction_summary": "Compare draft vs evidence via deterministic rules + optional LLM",
+      "sanitized_input": {"deterministic": true}
+    },
+    {
+      "sequence": 5,
+      "tool_or_action": "ClarificationAgent",
+      "instruction_summary": "Produce targeted question without inventing values",
+      "sanitized_input": {"topic": "referral_reason"},
+      "human_checkpoint": true,
+      "human_feedback": "Awaiting clinician response to clarification question"
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+# Optional Docker Compose — backend + frontend only
+# SQLite persists in named volume. No database service.
+# Not required for local development (venv + npm preferred).
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: scripts/Dockerfile.backend
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    volumes:
+      - rg_sqlite:/app/backend
+    command: >
+      sh -c "python backend/manage.py migrate &&
+             python backend/manage.py runserver 0.0.0.0:8000"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: ../scripts/Dockerfile.frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+
+volumes:
+  rg_sqlite:
