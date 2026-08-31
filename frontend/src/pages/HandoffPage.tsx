@@ -1,7 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link, useParams } from "react-router-dom";
 import { referralsApi } from "@/api/client";
+import { ActionButton } from "@/components/ActionButton";
 import { StatusBadge } from "@/components/StatusBadge";
+import { useActionSuccess } from "@/hooks/useActionSuccess";
 
 type HandoffPayload = {
   synthetic_case_id: string;
@@ -71,6 +73,7 @@ type HandoffPayload = {
 
 export function HandoffPage() {
   const { id = "" } = useParams();
+  const { trigger, isSuccess } = useActionSuccess();
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["handoff", id],
     queryFn: () => referralsApi.handoff(id) as Promise<HandoffPayload>,
@@ -82,9 +85,17 @@ export function HandoffPage() {
     return (
       <div className="rg-panel p-5" role="alert">
         <p className="text-rg-critical">Could not load handoff.</p>
-        <button type="button" className="rg-btn-secondary mt-3" onClick={() => void refetch()}>
+        <ActionButton
+          variant="secondary"
+          className="mt-3"
+          success={isSuccess("retry")}
+          onClick={() => {
+            void refetch();
+            trigger("retry");
+          }}
+        >
           Retry
-        </button>
+        </ActionButton>
       </div>
     );
   }
@@ -119,9 +130,17 @@ export function HandoffPage() {
           <h1 className="text-2xl font-semibold mt-1">Emergency referral handoff</h1>
         </div>
         <div className="flex flex-wrap gap-2">
-          <button type="button" className="rg-btn" onClick={() => window.print()}>
+          <ActionButton
+            type="button"
+            success={isSuccess("print")}
+            successLabel="Ready"
+            onClick={() => {
+              window.print();
+              trigger("print");
+            }}
+          >
             Print / save PDF
-          </button>
+          </ActionButton>
           <Link className="rg-btn-secondary" to={`/referrals/${id}`}>
             Back to case
           </Link>

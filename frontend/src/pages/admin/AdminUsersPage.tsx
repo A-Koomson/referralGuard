@@ -1,5 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/api/client";
+import { ActionButton } from "@/components/ActionButton";
+import { useActionSuccess } from "@/hooks/useActionSuccess";
 
 type AdminUser = {
   id: string;
@@ -12,6 +14,7 @@ type AdminUser = {
 };
 
 export function AdminUsersPage() {
+  const { trigger, isSuccess } = useActionSuccess();
   const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ["admin-users"],
     queryFn: () => api<AdminUser[]>("/api/v1/admin/users/"),
@@ -35,9 +38,17 @@ export function AdminUsersPage() {
           <p className="text-sm text-rg-critical">
             {(error as Error)?.message || "Unable to load users (super-admin required)."}
           </p>
-          <button type="button" className="rg-btn-secondary mt-3" onClick={() => void refetch()}>
+          <ActionButton
+            variant="secondary"
+            className="mt-3"
+            success={isSuccess("retry")}
+            onClick={() => {
+              void refetch();
+              trigger("retry");
+            }}
+          >
             Retry
-          </button>
+          </ActionButton>
         </div>
       ) : null}
       <div className="rg-panel overflow-x-auto">

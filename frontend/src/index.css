@@ -87,6 +87,13 @@
     background: var(--rg-accent-hover);
   }
 
+  .rg-btn:active:not(:disabled),
+  .rg-btn-secondary:active:not(:disabled),
+  .rg-btn-danger:active:not(:disabled),
+  .rg-btn-on-dark:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+
   .rg-btn-action:active:not(:disabled) {
     transform: scale(0.98);
   }
@@ -96,6 +103,12 @@
     border-color: var(--rg-ok) !important;
     color: #fff !important;
     animation: rgBtnSuccess 0.45s ease-out;
+  }
+
+  .rg-btn-secondary.rg-btn-success-pulse,
+  .rg-btn-danger.rg-btn-success-pulse,
+  .rg-btn-on-dark.rg-btn-success-pulse {
+    color: #fff !important;
   }
 
   .rg-btn-check {

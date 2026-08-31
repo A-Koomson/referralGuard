@@ -1,6 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/api/client";
+import { ActionButton } from "@/components/ActionButton";
 import { StatusBadge } from "@/components/StatusBadge";
+import { useActionSuccess } from "@/hooks/useActionSuccess";
 
 type ConsolePayload = {
   disclaimer: string;
@@ -9,6 +11,7 @@ type ConsolePayload = {
 };
 
 export function AvailabilityPage() {
+  const { trigger, isSuccess } = useActionSuccess();
   const { data, isLoading, isError, refetch, error } = useQuery({
     queryKey: ["availability-console"],
     queryFn: () => api<ConsolePayload>("/api/v1/availability/console/"),
@@ -35,9 +38,17 @@ export function AvailabilityPage() {
             Unable to load console
             {error instanceof Error ? `: ${error.message}` : "."}
           </p>
-          <button type="button" className="rg-btn-secondary mt-2" onClick={() => void refetch()}>
+          <ActionButton
+            variant="secondary"
+            className="mt-2"
+            success={isSuccess("retry")}
+            onClick={() => {
+              void refetch();
+              trigger("retry");
+            }}
+          >
             Retry
-          </button>
+          </ActionButton>
         </div>
       ) : null}
 

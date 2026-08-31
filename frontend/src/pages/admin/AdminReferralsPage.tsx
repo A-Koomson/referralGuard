@@ -1,9 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { referralsApi } from "@/api/client";
+import { ActionButton } from "@/components/ActionButton";
 import { StatusBadge } from "@/components/StatusBadge";
+import { useActionSuccess } from "@/hooks/useActionSuccess";
 
 export function AdminReferralsPage() {
+  const { trigger, isSuccess } = useActionSuccess();
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["admin-referrals"],
     queryFn: () => referralsApi.list(),
@@ -14,9 +17,16 @@ export function AdminReferralsPage() {
       <h2 className="text-lg font-semibold">Referrals</h2>
       {isLoading ? <p className="text-rg-muted">Loading…</p> : null}
       {isError ? (
-        <button type="button" className="rg-btn-secondary" onClick={() => void refetch()}>
+        <ActionButton
+          variant="secondary"
+          success={isSuccess("retry")}
+          onClick={() => {
+            void refetch();
+            trigger("retry");
+          }}
+        >
           Retry
-        </button>
+        </ActionButton>
       ) : null}
       <div className="rg-panel overflow-x-auto">
         <table className="w-full text-sm text-left">

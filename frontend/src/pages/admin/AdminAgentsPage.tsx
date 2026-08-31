@@ -1,5 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/api/client";
+import { ActionButton } from "@/components/ActionButton";
+import { useActionSuccess } from "@/hooks/useActionSuccess";
 
 type AgentRun = {
   id: string;
@@ -12,6 +14,7 @@ type AgentRun = {
 };
 
 export function AdminAgentsPage() {
+  const { trigger, isSuccess } = useActionSuccess();
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["admin-agent-runs"],
     queryFn: () => api<AgentRun[]>("/api/v1/agent-runs/"),
@@ -22,9 +25,16 @@ export function AdminAgentsPage() {
       <h2 className="text-lg font-semibold">Agent runs</h2>
       {isLoading ? <p className="text-rg-muted">Loading…</p> : null}
       {isError ? (
-        <button type="button" className="rg-btn-secondary" onClick={() => void refetch()}>
+        <ActionButton
+          variant="secondary"
+          success={isSuccess("retry")}
+          onClick={() => {
+            void refetch();
+            trigger("retry");
+          }}
+        >
           Retry
-        </button>
+        </ActionButton>
       ) : null}
       <div className="rg-panel overflow-x-auto">
         <table className="w-full text-sm text-left">

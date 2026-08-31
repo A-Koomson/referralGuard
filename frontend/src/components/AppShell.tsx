@@ -1,10 +1,13 @@
 import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "@/auth/AuthContext";
+import { ActionButton } from "@/components/ActionButton";
 import { SiteFooter } from "@/components/SiteFooter";
+import { useActionSuccess } from "@/hooks/useActionSuccess";
 
 export function AppShell() {
   const { user, logout, disclaimer } = useAuth();
   const location = useLocation();
+  const { trigger, isSuccess } = useActionSuccess();
 
   return (
     <div className="min-h-screen flex flex-col text-rg-ink">
@@ -81,9 +84,17 @@ export function AppShell() {
               <div className="font-medium leading-tight">{user?.full_name}</div>
               <div className="text-xs text-white/55">{user?.role?.replace(/_/g, " ")}</div>
             </div>
-            <button type="button" className="rg-btn-on-dark" onClick={() => void logout()}>
+            <ActionButton
+              variant="onDark"
+              success={isSuccess("logout")}
+              successLabel="Signed out"
+              onClick={async () => {
+                await logout();
+                trigger("logout");
+              }}
+            >
               Log out
-            </button>
+            </ActionButton>
           </div>
         </div>
         <div

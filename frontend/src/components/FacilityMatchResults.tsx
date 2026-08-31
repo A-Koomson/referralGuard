@@ -1,6 +1,8 @@
 import { Link } from "react-router-dom";
 import type { FacilityMatch } from "@/api/client";
+import { ActionButton } from "@/components/ActionButton";
 import { CapabilityCoverageTable } from "@/components/CapabilityCoverageTable";
+import { useActionSuccess } from "@/hooks/useActionSuccess";
 
 export function FacilityMatchResults({
   matches,
@@ -15,6 +17,8 @@ export function FacilityMatchResults({
   onSelect?: (facilityId: string) => void;
   showSelect?: boolean;
 }) {
+  const { trigger, isSuccess } = useActionSuccess();
+
   if (!matches.length) {
     return (
       <p className="text-sm text-rg-muted">
@@ -83,13 +87,18 @@ export function FacilityMatchResults({
                   </p>
                 </div>
                 {showSelect && onSelect ? (
-                  <button
+                  <ActionButton
                     type="button"
-                    className={selectedFacilityId === m.facility ? "rg-btn" : "rg-btn-secondary"}
-                    onClick={() => onSelect(m.facility)}
+                    variant={selectedFacilityId === m.facility ? "primary" : "secondary"}
+                    success={isSuccess(m.facility)}
+                    successLabel="Selected"
+                    onClick={() => {
+                      onSelect(m.facility);
+                      trigger(m.facility);
+                    }}
                   >
                     {selectedFacilityId === m.facility ? "Selected" : "Select for acceptance"}
-                  </button>
+                  </ActionButton>
                 ) : null}
               </div>
               <div className="px-4 py-3 space-y-3 bg-white">

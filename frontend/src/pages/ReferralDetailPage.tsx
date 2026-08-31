@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { FormEvent, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { referralsApi, type Finding } from "@/api/client";
+import { ActionButton } from "@/components/ActionButton";
 import { FacilityMatchResults } from "@/components/FacilityMatchResults";
 import { StatusBadge } from "@/components/StatusBadge";
 import { SystemTransparencyPanel } from "@/components/SystemTransparencyPanel";
@@ -14,6 +15,7 @@ import {
   WorkflowNavLink,
   WorkflowStepper,
 } from "@/components/WorkflowControls";
+import { useActionSuccess } from "@/hooks/useActionSuccess";
 import { nextStepHint, referralWorkflowGates, type GateResult } from "@/lib/workflowGates";
 
 export function ReferralDetailPage() {
@@ -27,6 +29,7 @@ export function ReferralDetailPage() {
   const [exportReason, setExportReason] = useState("");
   const [msg, setMsg] = useState<string | null>(null);
   const [selectedFacilityId, setSelectedFacilityId] = useState("");
+  const actionSuccess = useActionSuccess();
 
   const { data: matches, refetch: refetchMatches } = useQuery({
     queryKey: ["referral-matches", id],
@@ -49,6 +52,7 @@ export function ReferralDetailPage() {
     mutationFn: () => referralsApi.analyse(id),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["referral", id] });
+      actionSuccess.trigger("analyse");
       setMsg("Analysis complete.");
     },
     onError: (e: Error) => setMsg(e.message),
@@ -60,6 +64,7 @@ export function ReferralDetailPage() {
       void qc.invalidateQueries({ queryKey: ["referral", id] });
       void qc.invalidateQueries({ queryKey: ["referral-matches", id] });
       void refetchMatches();
+      actionSuccess.trigger("match");
       setMsg("Facility matching complete. Review ranked results below — stale capacity is not confirmed.");
     },
     onError: (e: Error) => setMsg(e.message),
@@ -69,6 +74,7 @@ export function ReferralDetailPage() {
     mutationFn: () => referralsApi.approve(id),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["referral", id] });
+      actionSuccess.trigger("approve");
       setMsg("Clinician approval recorded.");
     },
     onError: (e: Error) => setMsg(e.message),
@@ -89,6 +95,7 @@ export function ReferralDetailPage() {
     },
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["referral", id] });
+      actionSuccess.trigger("accept");
       const name =
         matches?.find((m) => m.facility === selectedFacilityId)?.facility_name || "selected facility";
       setMsg(`Acceptance confirmed with ${name} (simulation).`);
@@ -111,6 +118,7 @@ export function ReferralDetailPage() {
     },
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["referral", id] });
+      actionSuccess.trigger("decline");
       setMsg("Decline recorded (simulation). Acceptance for one referral is not facility-wide availability.");
     },
     onError: (e: Error) => setMsg(e.message),
@@ -120,6 +128,7 @@ export function ReferralDetailPage() {
     mutationFn: () => referralsApi.exportIncomplete(id, exportReason),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["referral", id] });
+      actionSuccess.trigger("export");
       setMsg("Incomplete emergency handoff exported — remains unverified.");
     },
     onError: (e: Error) => setMsg(e.message),
@@ -129,6 +138,7 @@ export function ReferralDetailPage() {
     mutationFn: (file: File) => referralsApi.uploadEvidence(id, file),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["referral", id] });
+      actionSuccess.trigger("upload");
       setMsg("Evidence uploaded. Prior verification/approval cleared — re-run analysis.");
     },
     onError: (e: Error) => setMsg(e.message),
@@ -139,9 +149,17 @@ export function ReferralDetailPage() {
     return (
       <div className="rg-panel p-5" role="alert">
         <p className="text-rg-critical">Failed to load referral.</p>
-        <button type="button" className="rg-btn-secondary mt-3" onClick={() => void refetch()}>
+        <ActionButton
+          variant="secondary"
+          className="mt-3"
+          success={actionSuccess.isSuccess("retry")}
+          onClick={() => {
+            void refetch();
+            actionSuccess.trigger("retry");
+          }}
+        >
           Retry
-        </button>
+        </ActionButton>
       </div>
     );
   }
@@ -253,6 +271,8 @@ export function ReferralDetailPage() {
                 gate={gates.analyse}
                 pending={analyse.isPending}
                 pendingLabel="Running…"
+                success={actionSuccess.isSuccess("analyse")}
+                successLabel="Complete"
                 onClick={() => analyse.mutate()}
               >
                 Run analysis
@@ -270,6 +290,7 @@ export function ReferralDetailPage() {
                 variant="secondary"
                 pending={match.isPending}
                 pendingLabel="Matching…"
+                success={actionSuccess.isSuccess("match")}
                 onClick={() => match.mutate()}
               >
                 Match facilities
@@ -279,6 +300,7 @@ export function ReferralDetailPage() {
                 variant="secondary"
                 pending={approve.isPending}
                 pendingLabel="Saving…"
+                success={actionSuccess.isSuccess("approve")}
                 onClick={() => approve.mutate()}
               >
                 Clinician approve
@@ -287,6 +309,7 @@ export function ReferralDetailPage() {
                 gate={acceptGate}
                 pending={accept.isPending}
                 pendingLabel="Confirming…"
+                success={actionSuccess.isSuccess("accept")}
                 onClick={() => accept.mutate()}
               >
                 Confirm acceptance
@@ -296,6 +319,7 @@ export function ReferralDetailPage() {
                 variant="danger"
                 pending={decline.isPending}
                 pendingLabel="Saving…"
+                success={actionSuccess.isSuccess("decline")}
                 onClick={() => decline.mutate()}
               >
                 Decline selected (simulation)
@@ -399,14 +423,17 @@ export function ReferralDetailPage() {
             required
             minLength={10}
           />
-          <button
+          <ActionButton
             type="submit"
-            className="rg-btn-danger"
-            disabled={exportIncomplete.isPending || !gates.incompleteExport.enabled}
+            variant="danger"
+            loading={exportIncomplete.isPending}
+            success={actionSuccess.isSuccess("export")}
+            successLabel="Exported"
+            disabled={!gates.incompleteExport.enabled}
             title={!gates.incompleteExport.enabled ? gates.incompleteExport.reason : undefined}
           >
             Export incomplete handoff
-          </button>
+          </ActionButton>
         </form>
       </section>
     </div>
@@ -428,6 +455,7 @@ function ReferralReasonField({
   const [draft, setDraft] = useState(value);
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const { trigger, isSuccess } = useActionSuccess();
 
   useEffect(() => {
     setDraft(value);
@@ -444,6 +472,7 @@ function ReferralReasonField({
     try {
       await referralsApi.patch(referralId, { referral_reason: trimmed });
       void qc.invalidateQueries({ queryKey: ["referral", referralId] });
+      trigger("save-reason");
       onSaved("Referral reason saved. Click Run analysis to re-check documentation.");
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Save failed");
@@ -471,14 +500,19 @@ function ReferralReasonField({
               Required for verification. Resolving a finding does not fill this field.
             </p>
           ) : null}
-          <button
+          <ActionButton
             type="button"
-            className="rg-btn-secondary text-xs py-1.5 px-3"
-            disabled={saving || draft.trim() === value.trim()}
+            variant="secondary"
+            size="sm"
+            loading={saving}
+            loadingLabel="Saving…"
+            success={isSuccess("save-reason")}
+            successLabel="Saved"
+            disabled={draft.trim() === value.trim()}
             onClick={() => void save()}
           >
-            {saving ? "Saving…" : "Save referral reason"}
-          </button>
+            Save referral reason
+          </ActionButton>
           {err ? (
             <p className="text-xs text-rg-critical" role="alert">
               {err}
@@ -506,6 +540,7 @@ function FindingsList({
   const [notes, setNotes] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const { trigger, isSuccess } = useActionSuccess();
 
   if (!findings.length) {
     const analysed = !["DRAFT"].includes(status);
@@ -542,6 +577,7 @@ function FindingsList({
         resolution_state,
         resolution_note: note,
       })) as Finding & { workflow_hint?: string };
+      trigger(`${findingId}-${resolution_state}`);
       onResolved(result.workflow_hint);
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Resolve failed");
@@ -598,22 +634,29 @@ function FindingsList({
                 onChange={(e) => setNotes({ ...notes, [f.id]: e.target.value })}
               />
               <div className="flex flex-wrap gap-2">
-                <button
+                <ActionButton
                   type="button"
-                  className="rg-btn"
-                  disabled={busy === f.id}
+                  loading={busy === f.id}
+                  loadingLabel="Saving…"
+                  success={isSuccess(`${f.id}-RESOLVED`)}
+                  successLabel="Saved"
+                  disabled={busy !== null && busy !== f.id}
                   onClick={() => void resolve(f.id, "RESOLVED")}
                 >
                   Confirm / correct
-                </button>
-                <button
+                </ActionButton>
+                <ActionButton
                   type="button"
-                  className="rg-btn-secondary"
-                  disabled={busy === f.id}
+                  variant="secondary"
+                  loading={busy === f.id}
+                  loadingLabel="Saving…"
+                  success={isSuccess(`${f.id}-ACCEPTED_RISK`)}
+                  successLabel="Saved"
+                  disabled={busy !== null && busy !== f.id}
                   onClick={() => void resolve(f.id, "ACCEPTED_RISK")}
                 >
                   Dismiss (accept risk)
-                </button>
+                </ActionButton>
               </div>
               <p className="text-xs text-rg-muted">
                 Severity labels are documentation checks — not autonomous clinical triage.

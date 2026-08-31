@@ -1,6 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { api } from "@/api/client";
+import { ActionButton } from "@/components/ActionButton";
+import { useActionSuccess } from "@/hooks/useActionSuccess";
 
 type Overview = {
   referral_cases: number;
@@ -16,6 +18,7 @@ type Overview = {
 };
 
 export function AdminOverviewPage() {
+  const { trigger, isSuccess } = useActionSuccess();
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["admin-overview"],
     queryFn: () => api<Overview>("/api/v1/admin/overview/"),
@@ -26,9 +29,17 @@ export function AdminOverviewPage() {
     return (
       <div className="rg-panel p-5">
         <p className="text-rg-critical text-sm">Could not load admin overview.</p>
-        <button type="button" className="rg-btn-secondary mt-3" onClick={() => void refetch()}>
+        <ActionButton
+          variant="secondary"
+          className="mt-3"
+          success={isSuccess("retry")}
+          onClick={() => {
+            void refetch();
+            trigger("retry");
+          }}
+        >
           Retry
-        </button>
+        </ActionButton>
       </div>
     );
   }

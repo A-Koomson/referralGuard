@@ -1,26 +1,32 @@
 import { ButtonHTMLAttributes, useEffect, useState } from "react";
 
-type Variant = "primary" | "secondary" | "danger";
+type Variant = "primary" | "secondary" | "danger" | "onDark";
+type Size = "default" | "sm";
 
 const variantClass: Record<Variant, string> = {
   primary: "rg-btn",
   secondary: "rg-btn-secondary",
   danger: "rg-btn-danger",
+  onDark: "rg-btn-on-dark",
 };
 
 type ActionButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: Variant;
+  size?: Size;
   loading?: boolean;
   success?: boolean;
   successLabel?: string;
+  loadingLabel?: string;
 };
 
-/** Button with press feedback and a brief success pulse after async actions complete. */
+/** Action button with loading state, press feedback, and a brief success pulse. */
 export function ActionButton({
   variant = "primary",
+  size = "default",
   loading = false,
   success = false,
   successLabel = "Done",
+  loadingLabel = "Working…",
   children,
   className = "",
   disabled,
@@ -37,11 +43,12 @@ export function ActionButton({
   }, [success]);
 
   const showSuccess = flash && success;
+  const sizeClass = size === "sm" ? "text-xs py-1.5 px-3" : "";
 
   return (
     <button
       type={type}
-      className={`${variantClass[variant]} rg-btn-action${showSuccess ? " rg-btn-success-pulse" : ""} ${className}`}
+      className={`${variantClass[variant]} rg-btn-action${showSuccess ? " rg-btn-success-pulse" : ""} ${sizeClass} ${className}`}
       disabled={disabled || loading}
       {...props}
     >
@@ -55,7 +62,7 @@ export function ActionButton({
       ) : loading ? (
         <span className="inline-flex items-center gap-2">
           <span className="rg-btn-spinner" aria-hidden />
-          Running…
+          {loadingLabel}
         </span>
       ) : (
         children

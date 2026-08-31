@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { adminApi, type BenchmarkCaseRow } from "@/api/client";
 import { ActionButton } from "@/components/ActionButton";
+import { useActionSuccess } from "@/hooks/useActionSuccess";
 
 type RunKey = "baseline-mock" | "agent-mock" | "baseline-live" | "agent-live";
 type ResultsView = "live" | "mock";
@@ -22,6 +23,7 @@ function runLabel(method: string | null, mode: string | null) {
 
 export function AdminEvaluationPage() {
   const qc = useQueryClient();
+  const { trigger, isSuccess } = useActionSuccess();
   const [runMsg, setRunMsg] = useState<{ tone: "ok" | "err" | "info"; text: string } | null>(
     null,
   );
@@ -141,7 +143,14 @@ export function AdminEvaluationPage() {
 
       {isLoading ? <p className="text-rg-muted">Loading benchmark…</p> : null}
       {isError ? (
-        <ActionButton variant="secondary" onClick={() => void refetch()}>
+        <ActionButton
+          variant="secondary"
+          success={isSuccess("retry")}
+          onClick={() => {
+            void refetch();
+            trigger("retry");
+          }}
+        >
           Retry
         </ActionButton>
       ) : null}
@@ -235,6 +244,7 @@ export function AdminEvaluationPage() {
               <ActionButton
                 variant="secondary"
                 loading={activeRun === "baseline-mock"}
+                loadingLabel="Running…"
                 success={successRun === "baseline-mock"}
                 successLabel="Complete"
                 disabled={isRunning}
@@ -245,6 +255,7 @@ export function AdminEvaluationPage() {
               <ActionButton
                 variant="secondary"
                 loading={activeRun === "agent-mock"}
+                loadingLabel="Running…"
                 success={successRun === "agent-mock"}
                 successLabel="Complete"
                 disabled={isRunning}
@@ -254,6 +265,7 @@ export function AdminEvaluationPage() {
               </ActionButton>
               <ActionButton
                 loading={activeRun === "baseline-live"}
+                loadingLabel="Running…"
                 success={successRun === "baseline-live"}
                 successLabel="Complete"
                 disabled={isRunning || !liveReady}
@@ -263,6 +275,7 @@ export function AdminEvaluationPage() {
               </ActionButton>
               <ActionButton
                 loading={activeRun === "agent-live"}
+                loadingLabel="Running…"
                 success={successRun === "agent-live"}
                 successLabel="Complete"
                 disabled={isRunning || !liveReady}

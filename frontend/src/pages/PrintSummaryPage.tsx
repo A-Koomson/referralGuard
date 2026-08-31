@@ -1,11 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link, useParams } from "react-router-dom";
 import { referralsApi } from "@/api/client";
+import { ActionButton } from "@/components/ActionButton";
 import { StatusBadge } from "@/components/StatusBadge";
+import { useActionSuccess } from "@/hooks/useActionSuccess";
 
 /** Printable referral summary — omits application navigation via print CSS. */
 export function PrintSummaryPage() {
   const { id = "" } = useParams();
+  const { trigger, isSuccess } = useActionSuccess();
   const { data, isLoading } = useQuery({
     queryKey: ["referral", id],
     queryFn: () => referralsApi.get(id),
@@ -96,9 +99,17 @@ export function PrintSummaryPage() {
       </p>
 
       <div className="no-print mt-6 flex gap-2">
-        <button type="button" className="rg-btn" onClick={() => window.print()}>
+        <ActionButton
+          type="button"
+          success={isSuccess("print")}
+          successLabel="Ready"
+          onClick={() => {
+            window.print();
+            trigger("print");
+          }}
+        >
           Print
-        </button>
+        </ActionButton>
         <Link className="rg-btn-secondary" to={`/referrals/${id}/handoff`}>
           Open full handoff
         </Link>

@@ -1,8 +1,10 @@
 import { FormEvent, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/auth/AuthContext";
+import { ActionButton } from "@/components/ActionButton";
 import { SiteFooter } from "@/components/SiteFooter";
 import { HeroBackdrop } from "@/components/HeroBackdrop";
+import { useActionSuccess } from "@/hooks/useActionSuccess";
 
 export function LoginPage() {
   const { user, login, loading } = useAuth();
@@ -10,6 +12,7 @@ export function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const { trigger, isSuccess } = useActionSuccess();
 
   if (!loading && user) return <Navigate to="/" replace />;
 
@@ -19,6 +22,7 @@ export function LoginPage() {
     setError(null);
     try {
       await login(email, password);
+      trigger("login");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed");
     } finally {
@@ -113,9 +117,16 @@ export function LoginPage() {
                     {error}
                   </p>
                 ) : null}
-                <button type="submit" className="rg-btn w-full" disabled={submitting}>
-                  {submitting ? "Signing in…" : "Sign in"}
-                </button>
+                <ActionButton
+                  type="submit"
+                  className="w-full"
+                  loading={submitting}
+                  loadingLabel="Signing in…"
+                  success={isSuccess("login")}
+                  successLabel="Signed in"
+                >
+                  Sign in
+                </ActionButton>
               </form>
             </div>
           </div>

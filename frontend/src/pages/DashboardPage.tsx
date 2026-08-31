@@ -2,13 +2,16 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { referralsApi } from "@/api/client";
+import { ActionButton } from "@/components/ActionButton";
 import { StatusBadge } from "@/components/StatusBadge";
 import { HeroBackdrop } from "@/components/HeroBackdrop";
+import { useActionSuccess } from "@/hooks/useActionSuccess";
 
 export function DashboardPage() {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("");
   const [applied, setApplied] = useState({ search: "", status: "" });
+  const { trigger, isSuccess } = useActionSuccess();
 
   const { data, isLoading, isError, refetch, isFetching } = useQuery({
     queryKey: ["referrals", applied],
@@ -81,6 +84,7 @@ export function DashboardPage() {
         onSubmit={(e) => {
           e.preventDefault();
           setApplied({ search: search.trim(), status });
+          trigger("filter");
         }}
       >
         <div className="flex-1">
@@ -114,9 +118,14 @@ export function DashboardPage() {
           </select>
         </div>
         <div className="flex items-end">
-          <button type="submit" className="rg-btn w-full sm:w-auto">
+          <ActionButton
+            type="submit"
+            className="w-full sm:w-auto"
+            success={isSuccess("filter")}
+            successLabel="Applied"
+          >
             Apply filters
-          </button>
+          </ActionButton>
         </div>
       </form>
 
@@ -229,12 +238,21 @@ function EmptyState() {
 }
 
 function ErrorState({ onRetry }: { onRetry: () => void }) {
+  const { trigger, isSuccess } = useActionSuccess();
   return (
     <div className="rg-panel p-5" role="alert">
       <p className="text-rg-critical text-sm">Could not load referrals.</p>
-      <button type="button" className="rg-btn-secondary mt-3" onClick={onRetry}>
+      <ActionButton
+        variant="secondary"
+        className="mt-3"
+        success={isSuccess("retry")}
+        onClick={() => {
+          void onRetry();
+          trigger("retry");
+        }}
+      >
         Retry
-      </button>
+      </ActionButton>
     </div>
   );
 }

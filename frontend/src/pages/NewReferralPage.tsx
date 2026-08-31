@@ -2,7 +2,9 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { FormEvent, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { facilitiesApi, referralsApi } from "@/api/client";
+import { ActionButton } from "@/components/ActionButton";
 import { CapabilityNeedsInput } from "@/components/CapabilityNeedsInput";
+import { useActionSuccess } from "@/hooks/useActionSuccess";
 
 const DOC_OPTIONS = [
   { value: "UNKNOWN", label: "Unknown" },
@@ -31,6 +33,7 @@ export function NewReferralPage() {
     medication_history_status: "NOT_RECORDED",
   });
   const [error, setError] = useState<string | null>(null);
+  const { trigger, isSuccess } = useActionSuccess();
 
   const create = useMutation({
     mutationFn: () =>
@@ -52,7 +55,10 @@ export function NewReferralPage() {
           medication_history: form.medication_history_status,
         },
       } as never),
-    onSuccess: (r) => navigate(`/referrals/${r.id}`),
+    onSuccess: (r) => {
+      trigger("create");
+      window.setTimeout(() => navigate(`/referrals/${r.id}`), 400);
+    },
     onError: (e: Error) => setError(e.message),
   });
 
@@ -140,9 +146,16 @@ export function NewReferralPage() {
               {error}
             </p>
           ) : null}
-          <button type="submit" className="rg-btn w-full" disabled={create.isPending}>
-            {create.isPending ? "Saving…" : "Create referral"}
-          </button>
+          <ActionButton
+            type="submit"
+            className="w-full"
+            loading={create.isPending}
+            loadingLabel="Saving…"
+            success={isSuccess("create")}
+            successLabel="Created"
+          >
+            Create referral
+          </ActionButton>
         </form>
       </div>
     </div>

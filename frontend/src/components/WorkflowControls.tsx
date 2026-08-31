@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { ActionButton } from "@/components/ActionButton";
 import type { GateResult } from "@/lib/workflowGates";
 import { WORKFLOW_STEPS, workflowStepIndex } from "@/lib/workflowGates";
 
@@ -7,22 +8,20 @@ type WorkflowActionButtonProps = {
   onClick?: () => void;
   pending?: boolean;
   pendingLabel?: string;
+  success?: boolean;
+  successLabel?: string;
   variant?: "primary" | "secondary" | "danger";
   children: React.ReactNode;
   type?: "button" | "submit";
-};
-
-const variantClass = {
-  primary: "rg-btn",
-  secondary: "rg-btn-secondary",
-  danger: "rg-btn-danger",
 };
 
 export function WorkflowActionButton({
   gate,
   onClick,
   pending = false,
-  pendingLabel,
+  pendingLabel = "Working…",
+  success = false,
+  successLabel = "Done",
   variant = "primary",
   children,
   type = "button",
@@ -31,16 +30,21 @@ export function WorkflowActionButton({
   const title = disabled && gate.reason ? gate.reason : undefined;
 
   return (
-    <button
+    <ActionButton
       type={type}
-      className={`${variantClass[variant]}${disabled ? " rg-btn-disabled" : ""}`}
+      variant={variant}
+      loading={pending}
+      loadingLabel={pendingLabel}
+      success={success}
+      successLabel={successLabel}
       disabled={disabled}
+      className={!gate.enabled ? "rg-btn-disabled" : ""}
       title={title}
       aria-disabled={disabled}
       onClick={onClick}
     >
-      {pending && pendingLabel ? pendingLabel : children}
-    </button>
+      {children}
+    </ActionButton>
   );
 }
 
@@ -65,7 +69,7 @@ export function WorkflowNavLink({ to, gate, children }: WorkflowNavLinkProps) {
   }
 
   return (
-    <Link className="rg-btn-secondary" to={to}>
+    <Link className="rg-btn-secondary rg-btn-action" to={to}>
       {children}
     </Link>
   );

@@ -1,9 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { facilitiesApi } from "@/api/client";
+import { ActionButton } from "@/components/ActionButton";
 import { CapabilityCodesReference } from "@/components/CapabilityCodesReference";
+import { useActionSuccess } from "@/hooks/useActionSuccess";
 
 export function FacilitiesPage() {
+  const { trigger, isSuccess } = useActionSuccess();
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["facilities"],
     queryFn: () => facilitiesApi.list(),
@@ -27,9 +30,16 @@ export function FacilitiesPage() {
 
       {isLoading ? <p className="text-rg-muted">Loading…</p> : null}
       {isError ? (
-        <button type="button" className="rg-btn-secondary" onClick={() => void refetch()}>
+        <ActionButton
+          variant="secondary"
+          success={isSuccess("retry")}
+          onClick={() => {
+            void refetch();
+            trigger("retry");
+          }}
+        >
           Retry
-        </button>
+        </ActionButton>
       ) : null}
 
       <ul className="grid sm:grid-cols-2 gap-3">

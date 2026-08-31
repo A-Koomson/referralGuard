@@ -3,9 +3,11 @@ import { FormEvent, useEffect, useState } from "react";
 import { useAuth } from "@/auth/AuthContext";
 import { adminApi, type SystemSettingRow } from "@/api/client";
 import { ActionButton } from "@/components/ActionButton";
+import { useActionSuccess } from "@/hooks/useActionSuccess";
 
 export function AdminSettingsPage() {
   const { user, disclaimer } = useAuth();
+  const { trigger, isSuccess } = useActionSuccess();
   const qc = useQueryClient();
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["admin-settings"],
@@ -82,7 +84,14 @@ export function AdminSettingsPage() {
 
       {isLoading ? <p className="text-rg-muted">Loading settings…</p> : null}
       {isError ? (
-        <ActionButton variant="secondary" onClick={() => void refetch()}>
+        <ActionButton
+          variant="secondary"
+          success={isSuccess("retry")}
+          onClick={() => {
+            void refetch();
+            trigger("retry");
+          }}
+        >
           Retry
         </ActionButton>
       ) : null}
