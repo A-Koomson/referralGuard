@@ -10,6 +10,8 @@ Use this after cloning ReferralGuard. For install commands and automated tests, 
 
 ## 1. First-time setup (after clone)
 
+Works on **Windows, macOS, and Linux**. Exact commands: [REPRODUCTION.md](REPRODUCTION.md).
+
 - Clone the repo and open a terminal at the repo root.
 - Create a virtualenv and install backend deps (`backend/requirements.txt`).
 - Copy `.env.example` → `.env`.
@@ -20,6 +22,12 @@ Use this after cloning ReferralGuard. For install commands and automated tests, 
 - **Terminal 2:** `cd frontend` → `npm ci` → `npm run dev`
 - Open http://127.0.0.1:5173
 
+**Activate the venv each session**
+
+| OS | Command |
+|----|---------|
+| Windows (PowerShell) | `.\.venv\Scripts\Activate.ps1` |
+| macOS / Linux | `source .venv/bin/activate` |
 ### Demo logins
 
 | Email | Role | Password |

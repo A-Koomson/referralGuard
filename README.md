@@ -38,14 +38,15 @@ Monorepo layout: `backend/` (Django apps), `frontend/` (React), `data/synthetic/
 
 ## Quick start
 
-See [RUN_AND_TEST_GUIDE.md](RUN_AND_TEST_GUIDE.md) (generated from verified commands) and [REPRODUCTION.md](REPRODUCTION.md).
+See [RUN_AND_TEST_GUIDE.md](RUN_AND_TEST_GUIDE.md) and [REPRODUCTION.md](REPRODUCTION.md) (**Windows, macOS, Linux**).
 
 **Manual testing after clone:** [CLONE_TEST_GUIDE.md](CLONE_TEST_GUIDE.md) — happy path + inconsistent EVAL cases.
 
-**Ready to submit?** See [CLONE_TEST_GUIDE.md](CLONE_TEST_GUIDE.md) (judge script) and [SUBMISSION_CHECKLIST.md](SUBMISSION_CHECKLIST.md). Local owner notes: copy `SUBMIT_NOW.md` from your session if present — it is gitignored and not pushed.
+**Ready to submit?** See [SUBMISSION_CHECKLIST.md](SUBMISSION_CHECKLIST.md) and [VIDEO_RECORDING_PLAN.md](VIDEO_RECORDING_PLAN.md). Local owner notes: `SUBMIT_NOW.md` is gitignored if present.
+
+### Windows (PowerShell)
 
 ```powershell
-# Windows PowerShell (from repo root)
 py -3.11 -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install -r backend\requirements.txt
@@ -61,6 +62,24 @@ python backend\manage.py runserver 127.0.0.1:8000
 cd frontend
 npm ci
 npm run dev
+```
+
+### macOS / Linux
+
+```bash
+python3.11 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r backend/requirements.txt
+cp .env.example .env
+# Set BOOTSTRAP_SUPERADMIN_PASSWORD in .env
+python backend/manage.py migrate
+python backend/manage.py bootstrap_demo
+python backend/manage.py runserver 127.0.0.1:8000
+```
+
+```bash
+# Second terminal
+cd frontend && npm ci && npm run dev
 ```
 
 - App UI: http://127.0.0.1:5173  
