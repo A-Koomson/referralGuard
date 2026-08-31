@@ -39,6 +39,7 @@
 - **Handoff** and **Print summary** blocked until status is **ACCEPTED** (direct URL shows a gate screen).
 - **Backend:** approve only from `AWAITING_ACCEPTANCE` after matches exist; accept requires prior clinician approval (`test_workflow_gates.py`).
 - **New referral:** clickable capability chips add/remove need codes (`CapabilityNeedsInput.tsx`) — no manual code memorization.
+- **Workflow feedback:** blocker alerts explain why actions are locked; editable referral reason on case detail; resolving a finding does not update clinical fields.
 
 ## Removed / not claimed experiments
 

@@ -101,7 +101,8 @@ All 12 **EVAL-** cases start in **DRAFT**. For each: open case → **Run analysi
 - **Resolve a finding:**
   - Enter a **reviewer note** (required)
   - **Confirm / correct** or **Dismiss (accept risk)**
-  - **Expect:** Resolution state updates; original message preserved
+  - **Expect:** Resolution state updates; an alert explains next steps
+  - **Important:** Resolving does **not** fill the referral reason — edit **Clinical summary → Referral reason**, save, then **Run analysis**
 - **Export incomplete emergency handoff:**
   - Enter an audited reason (≥10 characters)
   - **Expect:** Export succeeds; case stays **not fully verified**; unresolved items remain visible
