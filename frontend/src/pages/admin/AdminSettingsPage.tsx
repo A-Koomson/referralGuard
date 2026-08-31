@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { FormEvent, useEffect, useState } from "react";
 import { useAuth } from "@/auth/AuthContext";
 import { adminApi, type SystemSettingRow } from "@/api/client";
+import { ActionButton } from "@/components/ActionButton";
 
 export function AdminSettingsPage() {
   const { user, disclaimer } = useAuth();
@@ -11,7 +12,9 @@ export function AdminSettingsPage() {
     queryFn: () => adminApi.systemSettings(),
   });
   const [draft, setDraft] = useState<Record<string, string>>({});
-  const [msg, setMsg] = useState<string | null>(null);
+  const [msg, setMsg] = useState<{ tone: "ok" | "err"; text: string } | null>(null);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [createSuccess, setCreateSuccess] = useState(false);
   const [newKey, setNewKey] = useState("");
   const [newLabel, setNewLabel] = useState("");
   const [newValue, setNewValue] = useState("");
@@ -31,10 +34,12 @@ export function AdminSettingsPage() {
   const save = useMutation({
     mutationFn: () => adminApi.patchSystemSettings(draft),
     onSuccess: (res) => {
-      setMsg(`Saved: ${res.updated.join(", ") || "no changes"}`);
+      setMsg({ tone: "ok", text: `Saved: ${res.updated.join(", ") || "no changes"}` });
+      setSaveSuccess(true);
+      window.setTimeout(() => setSaveSuccess(false), 1500);
       void qc.invalidateQueries({ queryKey: ["admin-settings"] });
     },
-    onError: (e: Error) => setMsg(e.message),
+    onError: (e: Error) => setMsg({ tone: "err", text: e.message }),
   });
 
   const create = useMutation({
@@ -46,13 +51,15 @@ export function AdminSettingsPage() {
         category: "custom",
       }),
     onSuccess: () => {
-      setMsg(`Created setting ${newKey}`);
+      setMsg({ tone: "ok", text: `Created setting ${newKey}` });
+      setCreateSuccess(true);
+      window.setTimeout(() => setCreateSuccess(false), 1500);
       setNewKey("");
       setNewLabel("");
       setNewValue("");
       void qc.invalidateQueries({ queryKey: ["admin-settings"] });
     },
-    onError: (e: Error) => setMsg(e.message),
+    onError: (e: Error) => setMsg({ tone: "err", text: e.message }),
   });
 
   function onSubmit(e: FormEvent) {
@@ -75,9 +82,9 @@ export function AdminSettingsPage() {
 
       {isLoading ? <p className="text-rg-muted">Loading settings…</p> : null}
       {isError ? (
-        <button type="button" className="rg-btn-secondary" onClick={() => void refetch()}>
+        <ActionButton variant="secondary" onClick={() => void refetch()}>
           Retry
-        </button>
+        </ActionButton>
       ) : null}
 
       {data?.settings ? (
@@ -91,9 +98,9 @@ export function AdminSettingsPage() {
               onChange={(v) => setDraft({ ...draft, [s.key]: v })}
             />
           ))}
-          <button type="submit" className="rg-btn" disabled={save.isPending}>
-            {save.isPending ? "Saving…" : "Save settings"}
-          </button>
+          <ActionButton type="submit" loading={save.isPending} success={saveSuccess} successLabel="Saved">
+            Save settings
+          </ActionButton>
         </form>
       ) : null}
 
@@ -117,17 +124,26 @@ export function AdminSettingsPage() {
           value={newValue}
           onChange={(e) => setNewValue(e.target.value)}
         />
-        <button
-          type="button"
-          className="rg-btn-secondary"
-          disabled={create.isPending}
+        <ActionButton
+          variant="secondary"
+          loading={create.isPending}
+          success={createSuccess}
+          successLabel="Created"
+          disabled={!newKey.trim()}
           onClick={() => create.mutate()}
         >
           Create setting
-        </button>
+        </ActionButton>
       </div>
 
-      {msg ? <p className="text-sm text-rg-muted">{msg}</p> : null}
+      {msg ? (
+        <p
+          className={`text-sm ${msg.tone === "err" ? "text-rg-critical" : "text-rg-ok"}`}
+          role="status"
+        >
+          {msg.text}
+        </p>
+      ) : null}
     </div>
   );
 }

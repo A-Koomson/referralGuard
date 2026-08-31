@@ -87,6 +87,43 @@
     background: var(--rg-accent-hover);
   }
 
+  .rg-btn-action:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+
+  .rg-btn-success-pulse {
+    background: var(--rg-ok) !important;
+    border-color: var(--rg-ok) !important;
+    color: #fff !important;
+    animation: rgBtnSuccess 0.45s ease-out;
+  }
+
+  .rg-btn-check {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.1rem;
+    height: 1.1rem;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.22);
+    font-size: 0.7rem;
+    font-weight: 700;
+  }
+
+  .rg-btn-spinner {
+    width: 0.85rem;
+    height: 0.85rem;
+    border: 2px solid rgba(255, 255, 255, 0.35);
+    border-top-color: #fff;
+    border-radius: 9999px;
+    animation: rgSpin 0.7s linear infinite;
+  }
+
+  .rg-btn-secondary .rg-btn-spinner {
+    border-color: rgba(10, 107, 111, 0.2);
+    border-top-color: var(--rg-accent);
+  }
+
   .rg-btn-secondary {
     @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold border
       transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed;
@@ -191,9 +228,38 @@
   }
 }
 
+@keyframes rgBtnSuccess {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(34, 139, 87, 0.45);
+  }
+  50% {
+    transform: scale(1.03);
+    box-shadow: 0 0 0 8px rgba(34, 139, 87, 0);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes rgSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .rg-fade-up {
     animation: none;
+  }
+
+  .rg-btn-success-pulse,
+  .rg-btn-spinner {
+    animation: none;
+  }
+
+  .rg-btn-action:active:not(:disabled) {
+    transform: none;
   }
 }
 

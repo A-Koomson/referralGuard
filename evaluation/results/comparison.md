@@ -1,8 +1,8 @@
 # Evaluation: comparison
 
-- Mode: live
-- Model: openai/gpt-oss-120b
-- Benchmark claim: LIVE — agent pipeline (deterministic + LLM extraction)
+- Mode: mock
+- Model: mock-deterministic
+- Benchmark claim: MOCK — not an AI benchmark
 - Cases: 12
 - Micro recall (primary): 1.0
 - Micro precision: 1.0

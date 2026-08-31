@@ -15,15 +15,15 @@
     "primary_metric": "critical_omission_and_contradiction_recall",
     "uncertainty": "12 synthetic cases demonstrate prototype behaviour, not clinical efficacy or lives saved.",
     "method": "agent",
-    "mode": "live",
-    "model_name": "openai/gpt-oss-120b",
-    "benchmark_claim": "LIVE \u2014 agent pipeline (deterministic + LLM extraction)",
+    "mode": "mock",
+    "model_name": "mock-deterministic",
+    "benchmark_claim": "MOCK \u2014 not an AI benchmark",
     "comparison": {
       "baseline_micro_recall": 0.0,
       "agent_micro_recall": 1.0,
       "baseline_micro_precision": 0.0,
       "agent_micro_precision": 1.0,
-      "mode": "live",
+      "mode": "mock",
       "note": "Compare only when both runs share mode/provider. Mock comparison is not a measured AI-improvement claim."
     }
   },
@@ -31,7 +31,7 @@
     {
       "case_id": "EVAL-01",
       "method": "agent",
-      "mode": "live",
+      "mode": "mock",
       "true_positives": 0,
       "false_positives": 0,
       "false_negatives": 0,
@@ -40,13 +40,13 @@
       "readiness_correct": true,
       "invented_fact_count": 0,
       "citation_accuracy": null,
-      "latency_ms": 2347,
+      "latency_ms": 47,
       "notes": ""
     },
     {
       "case_id": "EVAL-02",
       "method": "agent",
-      "mode": "live",
+      "mode": "mock",
       "true_positives": 1,
       "false_positives": 0,
       "false_negatives": 0,
@@ -55,13 +55,13 @@
       "readiness_correct": true,
       "invented_fact_count": 0,
       "citation_accuracy": 1.0,
-      "latency_ms": 1894,
+      "latency_ms": 44,
       "notes": ""
     },
     {
       "case_id": "EVAL-03",
       "method": "agent",
-      "mode": "live",
+      "mode": "mock",
       "true_positives": 1,
       "false_positives": 0,
       "false_negatives": 0,
@@ -70,13 +70,13 @@
       "readiness_correct": true,
       "invented_fact_count": 0,
       "citation_accuracy": 1.0,
-      "latency_ms": 2750,
+      "latency_ms": 54,
       "notes": ""
     },
     {
       "case_id": "EVAL-04",
       "method": "agent",
-      "mode": "live",
+      "mode": "mock",
       "true_positives": 1,
       "false_positives": 0,
       "false_negatives": 0,
@@ -85,13 +85,13 @@
       "readiness_correct": true,
       "invented_fact_count": 0,
       "citation_accuracy": 1.0,
-      "latency_ms": 1776,
+      "latency_ms": 41,
       "notes": ""
     },
     {
       "case_id": "EVAL-05",
       "method": "agent",
-      "mode": "live",
+      "mode": "mock",
       "true_positives": 1,
       "false_positives": 0,
       "false_negatives": 0,
@@ -100,13 +100,13 @@
       "readiness_correct": true,
       "invented_fact_count": 0,
       "citation_accuracy": 1.0,
-      "latency_ms": 2958,
+      "latency_ms": 43,
       "notes": ""
     },
     {
       "case_id": "EVAL-06",
       "method": "agent",
-      "mode": "live",
+      "mode": "mock",
       "true_positives": 1,
       "false_positives": 0,
       "false_negatives": 0,
@@ -115,13 +115,13 @@
       "readiness_correct": true,
       "invented_fact_count": 0,
       "citation_accuracy": 1.0,
-      "latency_ms": 1408,
+      "latency_ms": 46,
       "notes": ""
     },
     {
       "case_id": "EVAL-07",
       "method": "agent",
-      "mode": "live",
+      "mode": "mock",
       "true_positives": 1,
       "false_positives": 0,
       "false_negatives": 0,
@@ -130,13 +130,13 @@
       "readiness_correct": true,
       "invented_fact_count": 0,
       "citation_accuracy": 1.0,
-      "latency_ms": 1453,
+      "latency_ms": 48,
       "notes": ""
     },
     {
       "case_id": "EVAL-08",
       "method": "agent",
-      "mode": "live",
+      "mode": "mock",
       "true_positives": 1,
       "false_positives": 0,
       "false_negatives": 0,
@@ -145,13 +145,13 @@
       "readiness_correct": true,
       "invented_fact_count": 0,
       "citation_accuracy": 1.0,
-      "latency_ms": 1726,
+      "latency_ms": 42,
       "notes": ""
     },
     {
       "case_id": "EVAL-09",
       "method": "agent",
-      "mode": "live",
+      "mode": "mock",
       "true_positives": 1,
       "false_positives": 0,
       "false_negatives": 0,
@@ -160,13 +160,13 @@
       "readiness_correct": true,
       "invented_fact_count": 0,
       "citation_accuracy": 1.0,
-      "latency_ms": 1742,
+      "latency_ms": 45,
       "notes": ""
     },
     {
       "case_id": "EVAL-10",
       "method": "agent",
-      "mode": "live",
+      "mode": "mock",
       "true_positives": 1,
       "false_positives": 0,
       "false_negatives": 0,
@@ -175,13 +175,13 @@
       "readiness_correct": true,
       "invented_fact_count": 0,
       "citation_accuracy": 1.0,
-      "latency_ms": 4834,
+      "latency_ms": 38,
       "notes": ""
     },
     {
       "case_id": "EVAL-11",
       "method": "agent",
-      "mode": "live",
+      "mode": "mock",
       "true_positives": 1,
       "false_positives": 0,
       "false_negatives": 0,
@@ -190,13 +190,13 @@
       "readiness_correct": true,
       "invented_fact_count": 0,
       "citation_accuracy": 1.0,
-      "latency_ms": 2831,
+      "latency_ms": 43,
       "notes": ""
     },
     {
       "case_id": "EVAL-12",
       "method": "agent",
-      "mode": "live",
+      "mode": "mock",
       "true_positives": 3,
       "false_positives": 0,
       "false_negatives": 0,
@@ -205,7 +205,7 @@
       "readiness_correct": true,
       "invented_fact_count": 0,
       "citation_accuracy": 1.0,
-      "latency_ms": 2407,
+      "latency_ms": 49,
       "notes": ""
     }
   ]

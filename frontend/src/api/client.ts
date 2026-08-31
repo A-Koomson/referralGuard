@@ -41,11 +41,18 @@ export async function api<T>(
   if (res.status === 204) return undefined as T;
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
-    const message =
-      (data as ApiError)?.error?.message ||
+    const err = (data as ApiError)?.error;
+    const rawMessage =
+      err?.message ||
       (data as { detail?: string }).detail ||
       res.statusText;
-    throw new Error(typeof message === "string" ? message : JSON.stringify(message));
+    const hint =
+      err && typeof err === "object" && "hint" in err
+        ? String((err as { hint?: string }).hint || "")
+        : "";
+    const base =
+      typeof rawMessage === "string" ? rawMessage : JSON.stringify(rawMessage);
+    throw new Error(hint ? `${base} — ${hint}` : base);
   }
   return data as T;
 }
@@ -318,6 +325,14 @@ export const adminApi = {
       disclaimer: string;
       primary_metric: string;
       case_count: number;
+      run_status?: {
+        running: boolean;
+        method: string | null;
+        mode: string | null;
+        error: string | null;
+        started_at: string | null;
+        finished_at: string | null;
+      };
       current_llm: {
         provider: string;
         model: string;
@@ -332,8 +347,17 @@ export const adminApi = {
       };
     }>("/api/v1/evaluation/benchmark/"),
   runEvaluation: (method: "baseline" | "agent", mode: "mock" | "live") =>
-    api<{ status: string; method: string; mode: string }>("/api/v1/evaluation/run/", {
-      method: "POST",
-      body: JSON.stringify({ method, mode }),
-    }),
+    api<{ status: string; method: string; mode: string; message?: string }>(
+      "/api/v1/evaluation/run/",
+      { method: "POST", body: JSON.stringify({ method, mode }) },
+    ),
+  evaluationRunStatus: () =>
+    api<{
+      running: boolean;
+      method: string | null;
+      mode: string | null;
+      error: string | null;
+      started_at: string | null;
+      finished_at: string | null;
+    }>("/api/v1/evaluation/run/status/"),
 };

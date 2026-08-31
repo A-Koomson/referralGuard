@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import time
 
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 from django.utils import timezone
 
 from agents.providers import get_provider
@@ -53,7 +53,7 @@ class Command(BaseCommand):
                     },
                 )
                 self.stderr.write(self.style.ERROR(f"NOT RUN: {exc}"))
-                return
+                raise CommandError(str(exc)) from exc
         else:
             provider = get_provider("mock")
 

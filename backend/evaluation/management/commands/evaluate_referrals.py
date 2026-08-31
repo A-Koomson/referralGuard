@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import time
 
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 from django.utils import timezone
 
 from agents.pipeline import run_verification_pipeline
@@ -47,7 +47,7 @@ class Command(BaseCommand):
                     {"status": "NOT_RUN", "reason": str(exc)},
                 )
                 self.stderr.write(self.style.ERROR(f"NOT RUN: {exc}"))
-                return
+                raise CommandError(str(exc)) from exc
             provider_model = live_provider.model_name
         else:
             provider_model = "mock"
@@ -108,7 +108,7 @@ class Command(BaseCommand):
             paths["live_archive"] = write_results("agent-live", scores, summary)
 
         # Comparison if baseline exists
-        baseline_path = settings_eval_baseline()
+        baseline_path = settings_eval_baseline(mode)
         if baseline_path and baseline_path.exists():
             import json
 
@@ -145,9 +145,10 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS(f"Agent evaluation written: {paths}"))
 
 
-def settings_eval_baseline():
+def settings_eval_baseline(mode: str):
     from pathlib import Path
 
     from django.conf import settings
 
-    return Path(settings.EVALUATION_DIR) / "results" / "baseline.json"
+    name = "baseline-live.json" if mode == "live" else "baseline.json"
+    return Path(settings.EVALUATION_DIR) / "results" / name
