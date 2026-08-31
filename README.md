@@ -81,11 +81,17 @@ Design source: [ReferralGuard Figma](https://www.figma.com/design/3J3sDtp9pfs1bF
 
 12 synthetic cases — prototype behaviour, not clinical efficacy.
 
+## Hot take / main failure mode
+
+- **Hot take:** Structured referral defects are checklist problems. Deterministic rules + human gates outperform a single free-form LLM prompt; the LLM should assist extraction, not be the primary safety net.
+- **Main failure mode:** Single-prompt baseline (and mock scores treated as “AI”) miss critical omissions. Live evidence: baseline recall **0.0** vs agent **1.0** on the same 12 cases — see [`IMPROVEMENT_CHANGELOG.md`](IMPROVEMENT_CHANGELOG.md) and [`evaluation/results/comparison-live.md`](evaluation/results/comparison-live.md).
+
 ## Limitations
 
 - Synthetic facilities and availability only.
 - Mock LLM mode is for offline UI/smoke tests — **not** the measured improvement claim.
 - Live comparison requires provider credentials; artifacts are archived under `evaluation/results/*-live.*`.
+- `QUALIFIED_REVIEWER` is an application role label only — not proof of professional qualification.
 
 ## License
 

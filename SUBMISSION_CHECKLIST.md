@@ -13,24 +13,23 @@ Maps hackathon deliverables to repository artifacts. Do not invent video URLs, e
 | ≥12 evaluation cases + frozen GT | Present | `data/synthetic/ground_truth.json` + `bootstrap_demo` |
 | Evaluation JSON/MD (mock) | Present | Re-run with `--mode mock`; archives in `evaluation/results/` |
 | Live measured AI comparison | **DONE** (2026-08-31) | `evaluation/results/comparison-live.md` — baseline recall **0.0** → agent **1.0** (Groq `openai/gpt-oss-120b`, 12 cases) |
-| Representative trajectories | Present (starter) | `trajectories/` |
+| Representative trajectories | **DONE** | `trajectories/` including live EVAL-03 JSON |
 | User / bottleneck / value / primary metric | Present | `README.md`, GT `primary_metric` |
 | Challenging negative case | Present | EVAL-01 |
-| Honest failure-mode insight | Present | `docs/SUBMISSION_CHECKLIST.md`, `FEATURE_AUDIT.md` |
+| Honest failure-mode insight | Present | README + `IMPROVEMENT_CHANGELOG.md` hot take |
 | Security policy | Present | `SECURITY.md` |
-| Automated tests (expanded) | Present | `pytest backend` → 23 passed (2026-08-31); frontend vitest + build |
+| Automated tests (expanded) | Present | `pytest backend` → 26 passed; frontend vitest + build + lint |
 | Figma visual verification | **BLOCKED** | No Figma access in Cursor; export screenshots required |
-| Solution video (≤ official limit) | **Owner task** | `docs/VIDEO_OUTLINE.md`, walkthrough in `CLONE_TEST_GUIDE.md` |
-| Qualified clinical review | **Owner task / disclose absent** | Role label ≠ qualification |
-| Portal submission / repo access | **Owner task** | Human |
-| Master prompt file in repo | **Missing** | `CURSOR_MASTER_PROMPT.md` not found |
+| Solution video (≤ official limit) | **Owner task** | `VIDEO_RECORDING_PLAN.md`, `docs/VIDEO_OUTLINE.md` |
+| Qualified clinical review | Disclose role label ≠ qualification | Human approval gates implemented; no external attestation |
+| Portal submission / repo access | **Owner task** | Confirm portal with organisers; repo is public |
 
 ## Blockers before claiming “ready to submit”
 
-1. **Record and upload** the official demo video — see `docs/VIDEO_OUTLINE.md` and `CLONE_TEST_GUIDE.md`.
+1. **Record and upload** the official demo video — see `VIDEO_RECORDING_PLAN.md`.
 2. ~~Run live baseline + agent evaluation~~ **Done** — artifacts in `evaluation/results/*-live.*`.
-3. Export Figma foundations/screens for visual alignment (optional; disclose unverified if skipped).
-4. Confirm portal/repo access and licence disclosures.
+3. ~~CI lint~~ **Done** — ruff.toml + eslint fixed (confirm green Actions after push).
+4. Confirm portal/repo access and licence disclosures with organisers.
 5. Rotate any API keys that were ever pasted into chat or screenshots.
 
 ## What this prototype is not

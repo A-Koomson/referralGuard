@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { adminApi, type BenchmarkCaseRow } from "@/api/client";
 import { ActionButton } from "@/components/ActionButton";
 import { useActionSuccess } from "@/hooks/useActionSuccess";
@@ -39,26 +39,29 @@ export function AdminEvaluationPage() {
     refetchInterval: watchRun ? 2000 : false,
   });
 
-  const finishRun = (method: string | null, mode: string | null, error: string | null) => {
-    setWatchRun(false);
-    setActiveRun(null);
-    if (error) {
-      setRunMsg({ tone: "err", text: error });
-      setSuccessRun(null);
-      return;
-    }
-    if (method && mode) {
-      setResultsView(mode === "live" ? "live" : "mock");
-      const key = `${method}-${mode}` as RunKey;
-      setSuccessRun(key);
-      window.setTimeout(() => setSuccessRun(null), 1500);
-    }
-    setRunMsg({
-      tone: "ok",
-      text: `${runLabel(method, mode)} completed. Results updated below.`,
-    });
-    void qc.invalidateQueries({ queryKey: ["admin-benchmark"] });
-  };
+  const finishRun = useCallback(
+    (method: string | null, mode: string | null, error: string | null) => {
+      setWatchRun(false);
+      setActiveRun(null);
+      if (error) {
+        setRunMsg({ tone: "err", text: error });
+        setSuccessRun(null);
+        return;
+      }
+      if (method && mode) {
+        setResultsView(mode === "live" ? "live" : "mock");
+        const key = `${method}-${mode}` as RunKey;
+        setSuccessRun(key);
+        window.setTimeout(() => setSuccessRun(null), 1500);
+      }
+      setRunMsg({
+        tone: "ok",
+        text: `${runLabel(method, mode)} completed. Results updated below.`,
+      });
+      void qc.invalidateQueries({ queryKey: ["admin-benchmark"] });
+    },
+    [qc],
+  );
 
   useEffect(() => {
     if (!watchRun || !data?.run_status) return;
@@ -69,7 +72,7 @@ export function AdminEvaluationPage() {
     if (!sawRunningRef.current) return;
     sawRunningRef.current = false;
     finishRun(data.run_status.method, data.run_status.mode, data.run_status.error);
-  }, [data?.run_status, watchRun, qc]);
+  }, [data?.run_status, watchRun, finishRun]);
 
   useEffect(() => {
     if (data?.run_status?.running && !watchRun) {

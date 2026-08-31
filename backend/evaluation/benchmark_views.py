@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import json
 import threading
-from datetime import datetime, timezone as dt_timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from django.conf import settings
@@ -66,7 +66,7 @@ def _load_json(name: str) -> dict | None:
 
 
 def _iso_now() -> str:
-    return datetime.now(dt_timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
 def _result_json_name(method: str, mode: str) -> str:

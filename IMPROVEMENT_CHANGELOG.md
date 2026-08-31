@@ -11,12 +11,13 @@
 - Added versioned provisional checklist manifest (explicitly **not** GHS-verified).
 - Deterministic findings for missing reason, missing treatment times, BP conflicts, GA conflicts, allergy contradictions, unattached labs, omitted treatments, unsupported diagnosis, contact flag, verbose incomplete, prompt-injection narrative.
 - **Decision:** Keep deterministic checks as primary for structured defects; LLM only for language-heavy extraction when live.
+- **Why this mattered most:** Structured omissions (empty reason, missing drug times) are checklist problems. A free-form LLM prompt is a weak detector for them.
 
 ## Iteration 2 — Orchestrated agent pipeline
 
 - Single `verification_orchestrator` with trace events for FactExtraction, Timeline, Policy, Contradiction, Clarification responsibilities (not seven mandatory LLM calls).
 - Provider interface: mock / live / replay; live never silently falls back to mock.
-- **Evidence:** `evaluation/results/agent.*` and `comparison.*` (mock).
+- **Evidence:** `evaluation/results/agent.*` and `comparison.*` (mock); representative traces in `trajectories/`.
 
 ## Iteration 3 — Safety gates
 
@@ -31,6 +32,7 @@
 - **Agent pipeline (live):** Deterministic checks + orchestrated LLM extraction — micro recall **1.0**, precision 1.0, 13 TP / 0 FP / 0 FN. See `evaluation/results/agent-live.md`.
 - **Comparison:** `evaluation/results/comparison-live.md` — measured improvement on frozen synthetic suite only; **not** clinical efficacy.
 - **Connectivity check:** `python backend/manage.py verify_llm` → LIVE OK before full runs.
+- **Sanitized live trajectory:** `trajectories/verification_orchestrator_live_eval03.json` (EVAL-03).
 
 ## Iteration 5 — Production workflow UX (2026-08-31)
 
@@ -43,8 +45,18 @@
 
 ## Removed / not claimed experiments
 
-- No fabricated discarded experiment.
-- Mock-mode 1.0 scores are deterministic pipeline checks — label as MOCK when cited separately from live.
+### Experiment removed from the measured claim: treating mock 1.0 as live AI improvement
+
+- **What we tried:** Early demos cited mock-mode agent recall **1.0** alongside the product walkthrough.
+- **Why it looked attractive:** Offline, free, and deterministic — great for UI smoke tests.
+- **Evidence of the problem:** Mock mode never calls a live LLM for the defect-finding checklist; scores largely reflect deterministic rules. Presenting them as “measured LLM improvement” would mislead judges.
+- **Decision:** Keep mock for functionality only. Measured improvement claim uses **live** artifacts only (`baseline-live.*` / `comparison-live.*`). Mock scores must be labelled **MOCK — not an AI benchmark**.
+- **Lesson:** Separate demo convenience from evaluation integrity. Do not invent discarded A/B experiments; document what you actually stopped claiming.
+
+## Hot take / main failure mode
+
+- **Hot take:** For emergency referral **documentation** defects, a versioned checklist plus human gates beats a single clever LLM prompt. The LLM is useful as a bounded extraction assist, not as the primary safety net.
+- **Main failure mode:** A weak single-prompt baseline (and any mock run treated as “AI”) systematically **misses structured omissions** (empty reason, missing administration times) while sometimes inventing unsupported problems. Live baseline recall **0.0** on 12 frozen cases is the evidence (`baseline-live.md`).
 
 ## Cursor / coding-agent contribution note
 

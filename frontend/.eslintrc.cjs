@@ -12,7 +12,11 @@ module.exports = {
   rules: {
     'react-refresh/only-export-components': [
       'warn',
-      { allowConstantExport: true },
+      {
+        allowConstantExport: true,
+        // Hooks and pure helpers colocated with components are intentional.
+        allowExportNames: ['useAuth', 'getWorkflowBlockers'],
+      },
     ],
   },
-}
+};

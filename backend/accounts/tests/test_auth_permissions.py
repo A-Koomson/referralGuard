@@ -1,7 +1,7 @@
 """Auth, permission, verification, evidence, and export API tests."""
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone as dt_tz
+from datetime import UTC, datetime, timedelta
 
 import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -303,7 +303,7 @@ def test_availability_expiry_with_frozen_clock(facility_a, clinician_a):
         capability=cap,
         availability_state=AvailabilityState.AVAILABLE,
     )
-    confirmed = datetime(2026, 8, 30, 12, 0, tzinfo=dt_tz.utc)
+    confirmed = datetime(2026, 8, 30, 12, 0, tzinfo=UTC)
     AvailabilityUpdate.objects.create(
         facility_capability=fc,
         state=AvailabilityState.AVAILABLE,
@@ -319,7 +319,7 @@ def test_availability_expiry_with_frozen_clock(facility_a, clinician_a):
             .first()
         )
         assert latest is not None
-        assert latest.expires_at <= datetime(2026, 8, 30, 15, 0, tzinfo=dt_tz.utc)
+        assert latest.expires_at <= datetime(2026, 8, 30, 15, 0, tzinfo=UTC)
 
 
 @pytest.mark.django_db

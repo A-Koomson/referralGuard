@@ -86,6 +86,41 @@ Primary metric: critical omission and contradiction **recall** on 12 frozen case
 
 - Mock evaluation: typically under 1 minute on a developer laptop; cost **not measured** (no LLM).
 - Live evaluation: depends on provider pricing; report tokens/money only with documented rates, otherwise **not measured**.
+- Approximate live suite (12 cases, 2026-08-31): on the order of a few minutes wall-clock; per-case agent latency in `agent-live.json` is roughly 1–5 seconds.
+
+## Fresh-clone verification (judges)
+
+From a **new empty directory** (not your existing workspace DB):
+
+```powershell
+git clone https://github.com/A-Koomson/referralGuard.git
+cd referralGuard
+py -3.11 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r backend\requirements.txt
+Copy-Item .env.example .env
+# Set BOOTSTRAP_SUPERADMIN_PASSWORD only (no LLM key needed for mock + tests)
+python backend\manage.py migrate
+python backend\manage.py bootstrap_demo
+python -m pytest backend
+cd frontend; npm ci; npm run build; npm test
+```
+
+**What judges can verify without paid API keys**
+
+| Result | How |
+|--------|-----|
+| App boots + seeded EVAL cases | `bootstrap_demo` + UI |
+| Mock baseline / agent pipeline | `--mode mock` (labelled MOCK — not the measured claim) |
+| Automated tests | `pytest backend`, `npm test`, `npm run build` |
+| Measured live improvement | Read committed `evaluation/results/*-live.*` |
+
+**What requires a judge-supplied API key**
+
+- Re-running `run_baseline --mode live` / `evaluate_referrals --mode live`
+- Live model outputs are **nondeterministic**; archived live artifacts are the submission evidence of the measured run
+
+Verified on maintainer machine (2026-08-31): **fresh clone** into a temp directory successfully ran `migrate`, `bootstrap_demo`, `pytest backend` (26 passed), `npm ci`, `npm run build`, and `npm test`. See also `RUN_AND_TEST_GUIDE.md` for the in-workspace command log.
 
 ## Disclaimer
 

@@ -69,7 +69,6 @@ class LiveProvider(Provider):
             raise RuntimeError("LLM_MODEL is required for live mode.")
 
     def complete_json(self, *, system: str, user: str, schema_name: str) -> dict[str, Any]:
-        import httpx
 
         schema_hint = (
             "Return JSON with keys: summary (string), facts (array of objects), "

@@ -25,7 +25,7 @@ def referralguard_exception_handler(exc: Exception, context: dict[str, Any]) -> 
     payload: dict[str, Any] = {
         "error": {
             "code": str(code),
-            "message": str(message) if not isinstance(message, (list, dict)) else message,
+            "message": str(message) if not isinstance(message, list | dict) else message,
             "status": response.status_code,
         }
     }
