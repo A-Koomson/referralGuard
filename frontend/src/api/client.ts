@@ -50,8 +50,12 @@ export async function api<T>(
       err && typeof err === "object" && "hint" in err
         ? String((err as { hint?: string }).hint || "")
         : "";
-    const base =
+    let base =
       typeof rawMessage === "string" ? rawMessage : JSON.stringify(rawMessage);
+    if (res.status === 404 && path.includes("/evaluation/")) {
+      base =
+        "Evaluation API not found. Restart the Django backend: python backend/manage.py runserver 127.0.0.1:8000";
+    }
     throw new Error(hint ? `${base} — ${hint}` : base);
   }
   return data as T;

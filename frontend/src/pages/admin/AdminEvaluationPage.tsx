@@ -17,76 +17,70 @@ export function AdminEvaluationPage() {
   );
   const [activeRun, setActiveRun] = useState<RunKey | null>(null);
   const [successRun, setSuccessRun] = useState<RunKey | null>(null);
-  const pollRef = useRef<number | null>(null);
+  const [watchRun, setWatchRun] = useState(false);
+  const sawRunningRef = useRef(false);
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["admin-benchmark"],
     queryFn: () => adminApi.benchmark(),
-    refetchInterval: (query) =>
-      (query.state.data as { run_status?: { running?: boolean } } | undefined)?.run_status?.running
-        ? 2500
-        : false,
+    refetchInterval: watchRun ? 2000 : false,
   });
 
-  const stopPolling = () => {
-    if (pollRef.current != null) {
-      window.clearInterval(pollRef.current);
-      pollRef.current = null;
+  useEffect(() => {
+    if (!watchRun || !data?.run_status) return;
+
+    if (data.run_status.running) {
+      sawRunningRef.current = true;
+      return;
     }
-  };
 
-  const pollUntilDone = (runKey: RunKey) => {
-    stopPolling();
-    pollRef.current = window.setInterval(async () => {
-      try {
-        const status = await adminApi.evaluationRunStatus();
-        if (status.running) return;
-        stopPolling();
-        setActiveRun(null);
-        if (status.error) {
-          setRunMsg({ tone: "err", text: status.error });
-          setSuccessRun(null);
-        } else {
-          setRunMsg({
-            tone: "ok",
-            text: `${status.method} (${status.mode}) completed successfully.`,
-          });
-          setSuccessRun(runKey);
-          window.setTimeout(() => setSuccessRun(null), 1500);
-        }
-        void qc.invalidateQueries({ queryKey: ["admin-benchmark"] });
-      } catch (e) {
-        stopPolling();
-        setActiveRun(null);
-        setRunMsg({ tone: "err", text: e instanceof Error ? e.message : "Status check failed" });
-      }
-    }, 2000);
-  };
+    if (!sawRunningRef.current) return;
 
-  useEffect(() => () => stopPolling(), []);
+    sawRunningRef.current = false;
+    setWatchRun(false);
+    setActiveRun(null);
+
+    if (data.run_status.error) {
+      setRunMsg({ tone: "err", text: data.run_status.error });
+      setSuccessRun(null);
+      return;
+    }
+
+    setRunMsg({
+      tone: "ok",
+      text: `${data.run_status.method} (${data.run_status.mode}) completed successfully.`,
+    });
+    if (data.run_status.method && data.run_status.mode) {
+      const key = `${data.run_status.method}-${data.run_status.mode}` as RunKey;
+      setSuccessRun(key);
+      window.setTimeout(() => setSuccessRun(null), 1500);
+    }
+    void qc.invalidateQueries({ queryKey: ["admin-benchmark"] });
+  }, [data?.run_status, watchRun, qc]);
 
   useEffect(() => {
-    if (data?.run_status?.running && !pollRef.current) {
+    if (data?.run_status?.running && !watchRun) {
       const method = data.run_status.method;
       const mode = data.run_status.mode;
       if (method && mode) {
         setActiveRun(`${method}-${mode}` as RunKey);
+        setWatchRun(true);
+        sawRunningRef.current = true;
         setRunMsg({
           tone: "info",
           text: `Running ${method} (${mode})… live runs may take several minutes.`,
         });
-        pollUntilDone(`${method}-${mode}` as RunKey);
       }
     }
-  }, [data?.run_status?.running]);
+  }, [data?.run_status?.running, data?.run_status?.method, data?.run_status?.mode, watchRun]);
 
   const startRun = useMutation({
     mutationFn: ({ method, mode }: { method: "baseline" | "agent"; mode: "mock" | "live" }) =>
       adminApi.runEvaluation(method, mode),
     onMutate: ({ method, mode }) => {
-      const key = `${method}-${mode}` as RunKey;
-      setActiveRun(key);
+      setActiveRun(`${method}-${mode}` as RunKey);
       setSuccessRun(null);
+      sawRunningRef.current = false;
       setRunMsg({
         tone: "info",
         text:
@@ -96,19 +90,21 @@ export function AdminEvaluationPage() {
       });
     },
     onSuccess: (res, { method, mode }) => {
-      const key = `${method}-${mode}` as RunKey;
       if (res.status === "started") {
-        pollUntilDone(key);
+        sawRunningRef.current = true;
+        setWatchRun(true);
+        void qc.invalidateQueries({ queryKey: ["admin-benchmark"] });
         return;
       }
       setActiveRun(null);
-      setSuccessRun(key);
+      setSuccessRun(`${method}-${mode}` as RunKey);
       setRunMsg({ tone: "ok", text: `${method} (${mode}) completed.` });
       window.setTimeout(() => setSuccessRun(null), 1500);
       void qc.invalidateQueries({ queryKey: ["admin-benchmark"] });
     },
     onError: (e: Error) => {
       setActiveRun(null);
+      setWatchRun(false);
       setSuccessRun(null);
       setRunMsg({ tone: "err", text: e.message });
     },
@@ -117,7 +113,7 @@ export function AdminEvaluationPage() {
   const comp = data?.artifacts?.comparison_live?.summary;
   const baseline = data?.artifacts?.baseline_live?.summary;
   const agent = data?.artifacts?.agent_live?.summary;
-  const isRunning = Boolean(data?.run_status?.running || activeRun);
+  const isRunning = Boolean(watchRun || data?.run_status?.running || activeRun);
 
   return (
     <div className="space-y-5 min-w-0">
@@ -188,7 +184,11 @@ export function AdminEvaluationPage() {
               <Row label="Base URL" value={data.current_llm.base_url || "—"} />
               <Row
                 label="API key"
-                value={data.current_llm.api_key_configured ? "Set in .env" : "Not set — live runs blocked"}
+                value={
+                  data.current_llm.api_key_configured
+                    ? "Set in .env"
+                    : "Not set — live runs blocked"
+                }
               />
             </dl>
             <p className="text-xs text-rg-muted mt-3 break-words">
