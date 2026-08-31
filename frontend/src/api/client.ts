@@ -9,66 +9,130 @@ export type ApiError = {
   };
 };
 
+/** In-memory cache; always prefer the live `csrftoken` cookie after login rotates it. */
 let csrfToken: string | null = null;
 
-async function ensureCsrf(): Promise<string> {
-  if (csrfToken) return csrfToken;
+function readCsrfCookie(): string | null {
+  if (typeof document === "undefined") return null;
+  const match = document.cookie.match(/(?:^|;\s*)csrftoken=([^;]*)/);
+  if (!match) return null;
+  try {
+    return decodeURIComponent(match[1]);
+  } catch {
+    return match[1];
+  }
+}
+
+export function clearCsrfToken(): void {
+  csrfToken = null;
+}
+
+async function ensureCsrf(forceRefresh = false): Promise<string> {
+  if (!forceRefresh) {
+    const cookie = readCsrfCookie();
+    if (cookie) {
+      csrfToken = cookie;
+      return cookie;
+    }
+    if (csrfToken) return csrfToken;
+  }
+
   const res = await fetch("/api/v1/auth/csrf/", { credentials: "include" });
   if (!res.ok) throw new Error("Failed to obtain CSRF cookie");
-  const data = (await res.json()) as { csrfToken: string };
-  csrfToken = data.csrfToken;
+  const data = (await res.json()) as { csrfToken?: string };
+  const cookie = readCsrfCookie();
+  csrfToken = cookie || data.csrfToken || null;
+  if (!csrfToken) throw new Error("CSRF token missing after /csrf/ request");
   return csrfToken;
 }
 
-export async function api<T>(
-  path: string,
-  options: RequestInit = {},
-): Promise<T> {
+function isCsrfFailure(status: number, message: string): boolean {
+  if (status !== 403) return false;
+  const lower = message.toLowerCase();
+  return lower.includes("csrf");
+}
+
+function formatErrorMessage(data: unknown, res: Response, path: string): string {
+  const err = (data as ApiError)?.error;
+  const rawMessage =
+    err?.message ||
+    (data as { detail?: string }).detail ||
+    res.statusText;
+  const hint =
+    err && typeof err === "object" && "hint" in err
+      ? String((err as { hint?: string }).hint || "")
+      : "";
+  let base = typeof rawMessage === "string" ? rawMessage : JSON.stringify(rawMessage);
+  if (res.status === 404 && path.includes("/evaluation/")) {
+    base =
+      "Evaluation API not found. Restart the Django backend: python backend/manage.py runserver 127.0.0.1:8000";
+  }
+  return hint ? `${base} — ${hint}` : base;
+}
+
+async function requestOnce(path: string, options: RequestInit, forceCsrf: boolean): Promise<Response> {
   const method = (options.method || "GET").toUpperCase();
   const headers = new Headers(options.headers || {});
   if (!headers.has("Content-Type") && options.body && !(options.body instanceof FormData)) {
     headers.set("Content-Type", "application/json");
   }
   if (method !== "GET" && method !== "HEAD") {
-    const token = await ensureCsrf();
+    const token = await ensureCsrf(forceCsrf);
     headers.set("X-CSRFToken", token);
   }
-  const res = await fetch(path, {
+  return fetch(path, {
     ...options,
     headers,
     credentials: "include",
   });
+}
+
+export async function api<T>(
+  path: string,
+  options: RequestInit = {},
+): Promise<T> {
+  let res = await requestOnce(path, options, false);
   if (res.status === 204) return undefined as T;
-  const data = await res.json().catch(() => ({}));
+
+  let data: unknown = await res.json().catch(() => ({}));
   if (!res.ok) {
-    const err = (data as ApiError)?.error;
-    const rawMessage =
-      err?.message ||
-      (data as { detail?: string }).detail ||
-      res.statusText;
-    const hint =
-      err && typeof err === "object" && "hint" in err
-        ? String((err as { hint?: string }).hint || "")
-        : "";
-    let base =
-      typeof rawMessage === "string" ? rawMessage : JSON.stringify(rawMessage);
-    if (res.status === 404 && path.includes("/evaluation/")) {
-      base =
-        "Evaluation API not found. Restart the Django backend: python backend/manage.py runserver 127.0.0.1:8000";
+    const message = formatErrorMessage(data, res, path);
+    const method = (options.method || "GET").toUpperCase();
+    // Login rotates Django's CSRF token; retry once with a fresh cookie/header.
+    if (method !== "GET" && method !== "HEAD" && isCsrfFailure(res.status, message)) {
+      clearCsrfToken();
+      res = await requestOnce(path, options, true);
+      if (res.status === 204) return undefined as T;
+      data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(formatErrorMessage(data, res, path));
+      }
+      return data as T;
     }
-    throw new Error(hint ? `${base} — ${hint}` : base);
+    throw new Error(message);
   }
   return data as T;
 }
 
 export const authApi = {
   csrf: () => ensureCsrf(),
-  login: (email: string, password: string) =>
-    api<{ user: User }>("/api/v1/auth/login/", {
+  login: async (email: string, password: string) => {
+    // Ensure a cookie exists before the login POST.
+    await ensureCsrf(true);
+    const result = await api<{ user: User }>("/api/v1/auth/login/", {
       method: "POST",
       body: JSON.stringify({ email, password }),
-    }),
-  logout: () => api<{ detail: string }>("/api/v1/auth/logout/", { method: "POST" }),
+    });
+    // Django rotates CSRF on login — drop cache and refresh cookie.
+    clearCsrfToken();
+    await ensureCsrf(true);
+    return result;
+  },
+  logout: async () => {
+    const result = await api<{ detail: string }>("/api/v1/auth/logout/", { method: "POST" });
+    clearCsrfToken();
+    return result;
+  },
   me: () => api<{ user: User; disclaimer: string }>("/api/v1/auth/me/"),
 };
 

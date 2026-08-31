@@ -31,6 +31,7 @@ class LoginView(APIView):
     authentication_classes = []
     throttle_classes = [LoginRateThrottle]
 
+    @method_decorator(ensure_csrf_cookie)
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -51,13 +52,17 @@ class LoginView(APIView):
                 status=status.HTTP_401_UNAUTHORIZED,
             )
         login(request, user)
-        return Response({"user": UserSerializer(user).data})
+        # Rotate sets a new CSRF secret; expose the matching cookie for the SPA.
+        token = get_token(request)
+        return Response({"user": UserSerializer(user).data, "csrfToken": token})
 
 
 class LogoutView(APIView):
+    @method_decorator(ensure_csrf_cookie)
     def post(self, request):
         logout(request)
-        return Response({"detail": "Logged out."})
+        token = get_token(request)
+        return Response({"detail": "Logged out.", "csrfToken": token})
 
 
 class MeView(APIView):
