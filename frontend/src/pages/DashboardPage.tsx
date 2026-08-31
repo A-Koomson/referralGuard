@@ -72,7 +72,7 @@ export function DashboardPage() {
         </HeroBackdrop>
       </section>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 rg-stagger">
         <Stat label="Open cases" value={stats.total} accent="var(--rg-accent)" />
         <Stat label="Needs attention" value={stats.needsWork} accent="var(--rg-warning)" />
         <Stat label="Emergency" value={stats.emergency} accent="var(--rg-critical)" />
@@ -153,9 +153,9 @@ export function DashboardPage() {
                   <th className="px-4 py-3 font-semibold">Updated</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="rg-table-body">
                 {data.results.map((r) => (
-                  <tr key={r.id} className="border-t border-rg-border hover:bg-[#f4fafb]">
+                  <tr key={r.id} className="rg-table-row border-t border-rg-border hover:bg-[#f4fafb]">
                     <td className="px-4 py-3">
                       <Link
                         className="font-semibold text-rg-accent hover:underline"
@@ -208,7 +208,7 @@ function Stat({
   accent: string;
 }) {
   return (
-    <div className="rg-panel p-4 border-l-4" style={{ borderLeftColor: accent }}>
+    <div className="rg-panel rg-stat-card p-4 border-l-4" style={{ borderLeftColor: accent }}>
       <div className="text-xs text-rg-muted uppercase tracking-wide font-semibold">{label}</div>
       <div className="text-2xl font-semibold mt-1 tabular-nums">{value}</div>
     </div>
@@ -219,7 +219,7 @@ function SkeletonRows() {
   return (
     <div className="space-y-2" aria-busy="true" aria-label="Loading referrals">
       {[1, 2, 3].map((i) => (
-        <div key={i} className="h-12 bg-rg-border/40 animate-pulse rounded-lg" />
+        <div key={i} className="h-12 rg-skeleton" />
       ))}
     </div>
   );

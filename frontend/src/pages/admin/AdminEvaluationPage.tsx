@@ -411,7 +411,7 @@ function MetricCard({
 }) {
   return (
     <div
-      className={`rg-panel p-4 min-w-0 overflow-hidden ${highlight ? "ring-2 ring-rg-accent/40" : ""}`}
+      className={`rg-panel rg-panel-lift p-4 min-w-0 overflow-hidden ${highlight ? "ring-2 ring-rg-accent/40" : ""}`}
       style={highlight ? { background: "var(--rg-accent-soft)" } : undefined}
     >
       <p className="text-xs uppercase tracking-wide text-rg-muted truncate">{title}</p>

@@ -1,6 +1,7 @@
 import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "@/auth/AuthContext";
 import { ActionButton } from "@/components/ActionButton";
+import { PageTransition } from "@/components/PageTransition";
 import { SiteFooter } from "@/components/SiteFooter";
 import { useActionSuccess } from "@/hooks/useActionSuccess";
 
@@ -98,7 +99,7 @@ export function AppShell() {
           </div>
         </div>
         <div
-          className="h-0.5 w-full"
+          className="h-0.5 w-full rg-header-accent"
           style={{
             background: "linear-gradient(90deg, var(--rg-accent), var(--rg-gold), var(--rg-accent))",
           }}
@@ -108,7 +109,9 @@ export function AppShell() {
 
       <main className="flex-1 w-full">
         <div className="mx-auto w-full max-w-6xl px-4 py-8">
-          <Outlet />
+          <PageTransition>
+            <Outlet />
+          </PageTransition>
         </div>
       </main>
 

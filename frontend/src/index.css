@@ -228,6 +228,132 @@
   .rg-fade-up {
     animation: rgFadeUp 0.4s ease-out both;
   }
+
+  .rg-page-enter {
+    animation: rgPageEnter 0.38s ease-out both;
+  }
+
+  .rg-stagger > * {
+    animation: rgFadeUp 0.42s ease-out both;
+  }
+
+  .rg-stagger > *:nth-child(1) {
+    animation-delay: 0.04s;
+  }
+  .rg-stagger > *:nth-child(2) {
+    animation-delay: 0.08s;
+  }
+  .rg-stagger > *:nth-child(3) {
+    animation-delay: 0.12s;
+  }
+  .rg-stagger > *:nth-child(4) {
+    animation-delay: 0.16s;
+  }
+  .rg-stagger > *:nth-child(5) {
+    animation-delay: 0.2s;
+  }
+  .rg-stagger > *:nth-child(6) {
+    animation-delay: 0.24s;
+  }
+  .rg-stagger > *:nth-child(7) {
+    animation-delay: 0.28s;
+  }
+  .rg-stagger > *:nth-child(8) {
+    animation-delay: 0.32s;
+  }
+
+  .rg-panel-lift {
+    transition:
+      transform 0.22s ease,
+      box-shadow 0.22s ease,
+      border-color 0.22s ease;
+  }
+
+  .rg-panel-lift:hover {
+    transform: translateY(-2px);
+    box-shadow:
+      0 2px 4px rgba(11, 36, 48, 0.06),
+      0 16px 32px rgba(11, 36, 48, 0.1);
+  }
+
+  .rg-stat-card {
+    transition: transform 0.2s ease;
+  }
+
+  .rg-stat-card:hover {
+    transform: translateY(-1px);
+  }
+
+  .rg-table-row {
+    transition: background-color 0.15s ease;
+  }
+
+  .rg-table-body .rg-table-row {
+    animation: rgRowEnter 0.35s ease-out both;
+  }
+
+  .rg-table-body .rg-table-row:nth-child(1) {
+    animation-delay: 0.05s;
+  }
+  .rg-table-body .rg-table-row:nth-child(2) {
+    animation-delay: 0.09s;
+  }
+  .rg-table-body .rg-table-row:nth-child(3) {
+    animation-delay: 0.13s;
+  }
+  .rg-table-body .rg-table-row:nth-child(4) {
+    animation-delay: 0.17s;
+  }
+  .rg-table-body .rg-table-row:nth-child(5) {
+    animation-delay: 0.21s;
+  }
+  .rg-table-body .rg-table-row:nth-child(6) {
+    animation-delay: 0.25s;
+  }
+  .rg-table-body .rg-table-row:nth-child(n + 7) {
+    animation-delay: 0.28s;
+  }
+
+  .rg-skeleton {
+    background: linear-gradient(90deg, #e8ecef 0%, #f4f7f9 45%, #e8ecef 90%);
+    background-size: 200% 100%;
+    animation: rgShimmer 1.2s ease-in-out infinite;
+    border-radius: var(--rg-radius);
+  }
+
+  .rg-loading-mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #fff;
+    background: var(--rg-accent);
+    border-radius: var(--rg-radius);
+    box-shadow: var(--rg-shadow);
+    animation: rgPulseMark 1.4s ease-in-out infinite;
+  }
+
+  .rg-header-accent {
+    background-size: 200% 100%;
+    animation: rgAccentSlide 8s ease-in-out infinite;
+  }
+
+  .rg-hero-item {
+    animation: rgFadeUp 0.5s ease-out both;
+  }
+
+  .rg-hero-item:nth-child(1) {
+    animation-delay: 0.15s;
+  }
+  .rg-hero-item:nth-child(2) {
+    animation-delay: 0.28s;
+  }
+  .rg-hero-item:nth-child(3) {
+    animation-delay: 0.41s;
+  }
 }
 
 @keyframes rgFadeUp {
@@ -238,6 +364,59 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes rgPageEnter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes rgRowEnter {
+  from {
+    opacity: 0;
+    transform: translateX(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes rgShimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes rgPulseMark {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: var(--rg-shadow);
+  }
+  50% {
+    transform: scale(1.04);
+    box-shadow: 0 4px 16px rgba(10, 107, 111, 0.25);
+  }
+}
+
+@keyframes rgAccentSlide {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
   }
 }
 
@@ -262,12 +441,24 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .rg-fade-up {
+  .rg-fade-up,
+  .rg-page-enter,
+  .rg-stagger > *,
+  .rg-table-body .rg-table-row,
+  .rg-hero-item {
     animation: none;
   }
 
+  .rg-panel-lift:hover,
+  .rg-stat-card:hover {
+    transform: none;
+  }
+
   .rg-btn-success-pulse,
-  .rg-btn-spinner {
+  .rg-btn-spinner,
+  .rg-skeleton,
+  .rg-loading-mark,
+  .rg-header-accent {
     animation: none;
   }
 

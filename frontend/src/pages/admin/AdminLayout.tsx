@@ -1,4 +1,5 @@
 import { NavLink, Outlet } from "react-router-dom";
+import { PageTransition } from "@/components/PageTransition";
 
 const NAV = [
   { to: "/admin", label: "Overview", end: true },
@@ -47,7 +48,9 @@ export function AdminLayout() {
         </aside>
 
         <section className="min-w-0">
-          <Outlet />
+          <PageTransition>
+            <Outlet />
+          </PageTransition>
         </section>
       </div>
     </div>

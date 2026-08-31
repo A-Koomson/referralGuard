@@ -42,9 +42,9 @@ export function FacilitiesPage() {
         </ActionButton>
       ) : null}
 
-      <ul className="grid sm:grid-cols-2 gap-3">
+      <ul className="grid sm:grid-cols-2 gap-3 rg-stagger">
         {data?.results?.map((f) => (
-          <li key={f.id} className="rg-panel p-5">
+          <li key={f.id} className="rg-panel rg-panel-lift p-5">
             <Link to={`/facilities/${f.id}`} className="font-medium text-rg-accent hover:underline">
               {f.name}
             </Link>

@@ -26,16 +26,27 @@ const queryClient = new QueryClient({
   },
 });
 
+function SessionLoading() {
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center gap-3 rg-page-enter">
+      <div className="rg-loading-mark" aria-hidden>
+        RG
+      </div>
+      <p className="text-sm text-rg-muted">Loading session…</p>
+    </div>
+  );
+}
+
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
-  if (loading) return <p className="p-8">Loading session…</p>;
+  if (loading) return <SessionLoading />;
   if (!user) return <Navigate to="/login" replace />;
   return children;
 }
 
 function SuperAdminRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
-  if (loading) return <p className="p-8">Loading session…</p>;
+  if (loading) return <SessionLoading />;
   if (!user) return <Navigate to="/login" replace />;
   if (user.role !== "SUPER_ADMIN" && !user.email?.includes("admin@")) {
     return (

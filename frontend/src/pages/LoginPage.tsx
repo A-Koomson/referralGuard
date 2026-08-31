@@ -59,7 +59,7 @@ export function LoginPage() {
               ].map((item) => (
                 <div
                   key={item}
-                  className="border border-white/15 bg-white/5 px-4 py-3"
+                  className="rg-hero-item border border-white/15 bg-white/5 px-4 py-3"
                   style={{ borderRadius: "var(--rg-radius)" }}
                 >
                   {item}
