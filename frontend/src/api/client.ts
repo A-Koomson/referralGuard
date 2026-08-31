@@ -264,15 +264,17 @@ export type Facility = {
 };
 
 export type BenchmarkSummary = {
-  micro_recall?: number;
-  micro_precision?: number;
+  micro_recall?: number | null;
+  micro_precision?: number | null;
   mode?: string;
   model_name?: string;
+  benchmark_claim?: string;
+  case_count?: number;
   comparison?: {
-    baseline_micro_recall?: number;
-    agent_micro_recall?: number;
-    baseline_micro_precision?: number;
-    agent_micro_precision?: number;
+    baseline_micro_recall?: number | null;
+    agent_micro_recall?: number | null;
+    baseline_micro_precision?: number | null;
+    agent_micro_precision?: number | null;
   };
 };
 
@@ -348,6 +350,22 @@ export const adminApi = {
         comparison_live?: BenchmarkArtifact;
         baseline_live?: BenchmarkArtifact;
         agent_live?: BenchmarkArtifact;
+        comparison_mock?: BenchmarkArtifact;
+        baseline_mock?: BenchmarkArtifact;
+        agent_mock?: BenchmarkArtifact;
+      };
+      last_run?: {
+        method: string;
+        mode: string;
+        finished_at: string | null;
+        error: string | null;
+        case_count: number;
+        micro_recall: number | null;
+        micro_precision: number | null;
+        benchmark_claim?: string;
+        artifact_md: string;
+        artifact_json: string;
+        next_steps: string[];
       };
     }>("/api/v1/evaluation/benchmark/"),
   runEvaluation: (method: "baseline" | "agent", mode: "mock" | "live") =>
