@@ -42,7 +42,7 @@ See [RUN_AND_TEST_GUIDE.md](RUN_AND_TEST_GUIDE.md) and [REPRODUCTION.md](REPRODU
 
 **Manual testing after clone:** [CLONE_TEST_GUIDE.md](CLONE_TEST_GUIDE.md) — happy path + inconsistent EVAL cases.
 
-**Ready to submit?** See [SUBMISSION_CHECKLIST.md](SUBMISSION_CHECKLIST.md) and [VIDEO_RECORDING_PLAN.md](VIDEO_RECORDING_PLAN.md). Local owner notes: `SUBMIT_NOW.md` is gitignored if present.
+**Ready to submit?** See [SUBMISSION_CHECKLIST.md](SUBMISSION_CHECKLIST.md). Demo video outline: [docs/VIDEO_OUTLINE.md](docs/VIDEO_OUTLINE.md). Local owner notes (`SUBMIT_NOW.md`, recording shot list) stay gitignored.
 
 ### Windows (PowerShell)
 

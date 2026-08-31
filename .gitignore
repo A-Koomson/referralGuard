@@ -12,6 +12,9 @@ credentials/
 
 # ── Local-only notes (not for GitHub) ────────────────────────────────────────
 SUBMIT_NOW.md
+VIDEO_RECORDING_PLAN.md
+FINAL_SUBMISSION_CHECKLIST.md
+SUBMISSION_READINESS_AUDIT.md
 
 # ── Local database & backups ─────────────────────────────────────────────────
 backend/db.sqlite3
