@@ -53,7 +53,7 @@ export function AdminOverviewPage() {
 
       <div className="flex flex-wrap gap-2">
         <Link to="/admin/evaluation" className="rg-btn">
-          Baseline &amp; LLM benchmark
+          Evaluation benchmark
         </Link>
         <Link to="/admin/referrals" className="rg-btn-secondary">
           Manage referrals

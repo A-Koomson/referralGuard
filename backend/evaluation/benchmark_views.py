@@ -57,70 +57,6 @@ def _refresh_llm_env_from_dotenv() -> bool:
         return False
 
 
-def _artifact_name(method: str | None, mode: str | None, *, comparison: bool = False) -> str | None:
-    if not method or not mode:
-        return None
-    if comparison:
-        return f"comparison{'-live' if mode == 'live' else ''}.json"
-    prefix = "baseline" if method == "baseline" else "agent"
-    return f"{prefix}{'-live' if mode == 'live' else ''}.json"
-
-
-def _last_run_payload() -> dict | None:
-    if _eval_state["running"] or not _eval_state["finished_at"]:
-        return None
-    method = _eval_state["method"]
-    mode = _eval_state["mode"]
-    if not method or not mode:
-        return None
-    artifact = _artifact_name(str(method), str(mode))
-    if not artifact:
-        return None
-    payload = _load_json(artifact)
-    summary = (payload or {}).get("summary") or {}
-    cases = (payload or {}).get("cases") or []
-    stem = artifact.replace(".json", "")
-    next_steps = _next_steps(str(method), str(mode))
-    return {
-        "method": method,
-        "mode": mode,
-        "finished_at": _eval_state["finished_at"],
-        "error": _eval_state["error"],
-        "summary": summary,
-        "cases": cases,
-        "case_count": len(cases),
-        "micro_recall": summary.get("micro_recall"),
-        "micro_precision": summary.get("micro_precision"),
-        "benchmark_claim": summary.get("benchmark_claim"),
-        "artifact_md": f"evaluation/results/{stem}.md",
-        "artifact_json": f"evaluation/results/{artifact}",
-        "next_steps": next_steps,
-    }
-
-
-def _next_steps(method: str, mode: str) -> list[str]:
-    if mode == "mock":
-        if method == "baseline":
-            return [
-                "Mock baseline finished — offline smoke test only, not a hackathon benchmark claim.",
-                "Next: run agent (mock) to confirm the pipeline, or run both live runs for measured scores.",
-            ]
-        return [
-            "Mock agent finished — confirms rules + pipeline work offline.",
-            "Next: run baseline (live) then agent (live) for scores to show judges (or use existing comparison-live.md).",
-        ]
-    if method == "baseline":
-        return [
-            "Live baseline scores saved to evaluation/results/baseline-live.md.",
-            "Next: run agent (live) to refresh comparison-live.md with side-by-side improvement.",
-        ]
-    return [
-        "Live agent scores saved to evaluation/results/agent-live.md and comparison-live.md.",
-        "Next: show Admin → Baseline & LLM or comparison-live.md in your hackathon video.",
-        "Optional: open EVAL-03 in the clinician dashboard to demo the workflow.",
-    ]
-
-
 def _load_json(name: str) -> dict | None:
     path = Path(settings.EVALUATION_DIR) / "results" / name
     if not path.exists():
@@ -139,34 +75,6 @@ def _result_json_name(method: str, mode: str) -> str:
     return f"agent{'-live' if mode == 'live' else ''}.json"
 
 
-def _next_steps(method: str | None, mode: str | None) -> str:
-    if not method or not mode:
-        return (
-            "Run baseline (live) then agent (live) for the hackathon benchmark story, "
-            "or use mock runs to smoke-test the pipeline offline."
-        )
-    if mode == "mock":
-        if method == "baseline":
-            return (
-                "Mock baseline finished — offline smoke test only. "
-                "Next: run agent (mock) or switch to live runs for measured scores."
-            )
-        return (
-            "Mock agent finished — confirms the pipeline runs, not an AI benchmark claim. "
-            "Next: enable live runs (restart backend with LLM_API_KEY) and run baseline (live) "
-            "then agent (live)."
-        )
-    if method == "baseline":
-        return (
-            "Live baseline scores saved. Next: run agent (live) on the same 12 cases — "
-            "that refreshes comparison-live.md for judges."
-        )
-    return (
-        "Live agent + comparison updated. Show the metric cards above and "
-        "evaluation/results/comparison-live.md in your demo video."
-    )
-
-
 def _last_run_payload() -> dict | None:
     if _eval_state["running"] or not _eval_state["finished_at"]:
         return None
@@ -179,25 +87,29 @@ def _last_run_payload() -> dict | None:
         "mode": mode,
         "finished_at": _eval_state["finished_at"],
         "error": _eval_state["error"],
-        "next_steps": _next_steps(str(method), str(mode)),
     }
     if _eval_state["error"]:
         return payload
     result_name = _result_json_name(str(method), str(mode))
     result = _load_json(result_name)
-    if result:
-        summary = result.get("summary") or {}
-        payload["summary"] = summary
-        payload["cases"] = result.get("cases") or []
-        payload["artifact_md"] = f"evaluation/results/{result_name.replace('.json', '.md')}"
-        payload["artifact_json"] = f"evaluation/results/{result_name}"
-        if str(method) == "agent":
-            comp_name = (
-                "comparison-live.json" if str(mode) == "live" else "comparison.json"
-            )
-            payload["comparison_md"] = (
-                f"evaluation/results/{comp_name.replace('.json', '.md')}"
-            )
+    if not result:
+        return payload
+    summary = result.get("summary") or {}
+    cases = result.get("cases") or []
+    stem = result_name.replace(".json", "")
+    payload.update(
+        {
+            "case_count": len(cases),
+            "micro_recall": summary.get("micro_recall"),
+            "micro_precision": summary.get("micro_precision"),
+            "benchmark_claim": summary.get("benchmark_claim"),
+            "artifact_md": f"evaluation/results/{stem}.md",
+            "artifact_json": f"evaluation/results/{result_name}",
+        }
+    )
+    if str(method) == "agent":
+        comp_name = "comparison-live.json" if str(mode) == "live" else "comparison.json"
+        payload["comparison_md"] = f"evaluation/results/{comp_name.replace('.json', '.md')}"
     return payload
 
 
@@ -249,7 +161,6 @@ class EvaluationBenchmarkView(APIView):
                     "model": get_system_setting("LLM_MODEL"),
                     "base_url": get_system_setting("LLM_BASE_URL"),
                     "api_key_configured": bool(settings.LLM_API_KEY),
-                    "env_file_hint": str(_env_file()),
                 },
                 "last_run": _last_run_payload(),
                 "run_status": {
@@ -260,23 +171,18 @@ class EvaluationBenchmarkView(APIView):
                     "started_at": _eval_state["started_at"],
                     "finished_at": _eval_state["finished_at"],
                 },
-                "last_run": _last_run_payload(),
-                "live_runs_require_restart": (
-                    get_system_setting("LLM_PROVIDER") == "live"
-                    and not settings.LLM_API_KEY
-                ),
                 "architecture": {
                     "baseline": (
-                        "Single direct LLM prompt (run_baseline). Does NOT use deterministic "
-                        "checklist or orchestrated pipeline. Intentionally weak comparison point."
+                        "Single direct LLM prompt without deterministic checklist rules "
+                        "or orchestrated pipeline."
                     ),
                     "agent": (
-                        "Deterministic verification rules + orchestrated pipeline with one bounded "
-                        "LLM fact-extraction pass (evaluate_referrals / analyse)."
+                        "Deterministic verification rules plus an orchestrated pipeline "
+                        "with bounded LLM fact extraction."
                     ),
                     "llm_role": (
-                        "LLM assists structured extraction only. Most findings come from rule-based "
-                        "checklist — not from asking the model to 'find all problems'."
+                        "The LLM supports structured extraction. Rule-based checklist "
+                        "logic produces most verification findings."
                     ),
                 },
                 "artifacts": {
@@ -287,17 +193,12 @@ class EvaluationBenchmarkView(APIView):
                     "agent_mock": agent_mock,
                     "comparison_mock": comparison_mock,
                 },
-                "artifact_paths": {
-                    "baseline_live": "evaluation/results/baseline-live.md",
-                    "agent_live": "evaluation/results/agent-live.md",
-                    "comparison_live": "evaluation/results/comparison-live.md",
-                },
             }
         )
 
 
 class EvaluationRunView(APIView):
-    """Start baseline or agent evaluation in the background (live runs may take several minutes)."""
+    """Start baseline or agent evaluation in the background."""
 
     permission_classes = [IsSuperAdmin]
 
@@ -319,8 +220,8 @@ class EvaluationRunView(APIView):
             return Response(
                 {
                     "error": {
-                        "message": "LLM_API_KEY is not set in server .env",
-                        "hint": "Add your Groq key to .env, set LLM_PROVIDER=live, restart runserver.",
+                        "message": "LLM API key is not configured.",
+                        "hint": "Set LLM_API_KEY in the server environment and reload.",
                     }
                 },
                 status=status.HTTP_400_BAD_REQUEST,
@@ -332,7 +233,7 @@ class EvaluationRunView(APIView):
                     {
                         "error": {
                             "message": "An evaluation is already running.",
-                            "hint": "Wait for it to finish or refresh the status panel.",
+                            "hint": "Wait for the current run to finish.",
                         }
                     },
                     status=status.HTTP_409_CONFLICT,
@@ -356,10 +257,7 @@ class EvaluationRunView(APIView):
                 "status": "started",
                 "method": method,
                 "mode": mode,
-                "message": (
-                    "Evaluation started in the background. "
-                    "Live runs may take several minutes — keep this page open."
-                ),
+                "message": "Evaluation started.",
             },
             status=status.HTTP_202_ACCEPTED,
         )

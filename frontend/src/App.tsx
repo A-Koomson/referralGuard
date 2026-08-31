@@ -42,8 +42,7 @@ function SuperAdminRoute({ children }: { children: React.ReactNode }) {
       <div className="rg-panel p-6">
         <h1 className="text-lg font-semibold">Admin access required</h1>
         <p className="text-sm text-rg-muted mt-2">
-          Sign in as super-admin (<code>admin@referralguard.local</code>) to view baseline, LLM
-          settings, and evaluation transparency.
+          Super-administrator access is required for this area.
         </p>
       </div>
     );

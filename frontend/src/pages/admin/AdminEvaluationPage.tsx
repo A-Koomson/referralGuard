@@ -15,6 +15,11 @@ function formatScore(value?: number | null) {
   return value != null ? value.toFixed(2) : "—";
 }
 
+function runLabel(method: string | null, mode: string | null) {
+  if (!method || !mode) return "Run";
+  return `${method.charAt(0).toUpperCase()}${method.slice(1)} (${mode})`;
+}
+
 export function AdminEvaluationPage() {
   const qc = useQueryClient();
   const [runMsg, setRunMsg] = useState<{ tone: "ok" | "err" | "info"; text: string } | null>(
@@ -48,7 +53,7 @@ export function AdminEvaluationPage() {
     }
     setRunMsg({
       tone: "ok",
-      text: `${method} (${mode}) finished — see “Last run output” below for scores and files.`,
+      text: `${runLabel(method, mode)} completed. Results updated below.`,
     });
     void qc.invalidateQueries({ queryKey: ["admin-benchmark"] });
   };
@@ -74,7 +79,7 @@ export function AdminEvaluationPage() {
         sawRunningRef.current = true;
         setRunMsg({
           tone: "info",
-          text: `Running ${method} (${mode})… live runs may take several minutes.`,
+          text: `Running ${runLabel(method, mode)}…`,
         });
       }
     }
@@ -87,13 +92,7 @@ export function AdminEvaluationPage() {
       setActiveRun(`${method}-${mode}` as RunKey);
       setSuccessRun(null);
       sawRunningRef.current = false;
-      setRunMsg({
-        tone: "info",
-        text:
-          mode === "live"
-            ? `Starting ${method} live evaluation… this may take several minutes.`
-            : `Starting ${method} mock evaluation…`,
-      });
+      setRunMsg({ tone: "info", text: `Starting ${runLabel(method, mode)}…` });
     },
     onSuccess: (res, { method, mode }) => {
       if (res.status === "started") {
@@ -119,8 +118,7 @@ export function AdminEvaluationPage() {
   const mockAgent = data?.artifacts?.agent_mock?.summary;
   const mockComp = data?.artifacts?.comparison_mock?.summary;
 
-  const viewBaseline =
-    resultsView === "live" ? liveBaseline : mockBaseline;
+  const viewBaseline = resultsView === "live" ? liveBaseline : mockBaseline;
   const viewAgent = resultsView === "live" ? liveAgent : mockAgent;
   const viewComp = resultsView === "live" ? liveComp : mockComp;
   const viewCases: BenchmarkCaseRow[] =
@@ -134,10 +132,10 @@ export function AdminEvaluationPage() {
   return (
     <div className="space-y-5 min-w-0">
       <div className="rg-panel p-5">
-        <h2 className="text-lg font-semibold">Baseline vs agent benchmark</h2>
+        <h2 className="text-lg font-semibold">Evaluation benchmark</h2>
         <p className="text-sm text-rg-muted mt-1 leading-relaxed">
-          Full transparency for judges: what the weak baseline is, what the LLM actually does, and
-          measured scores on the frozen 12-case synthetic suite.
+          Compare baseline and agent pipeline performance across the {data?.case_count ?? 12}-case
+          synthetic verification suite.
         </p>
       </div>
 
@@ -154,34 +152,34 @@ export function AdminEvaluationPage() {
             <ViewTab
               active={resultsView === "live"}
               onClick={() => setResultsView("live")}
-              label="Live results (for judges)"
+              label="Live"
             />
             <ViewTab
               active={resultsView === "mock"}
               onClick={() => setResultsView("mock")}
-              label="Mock results (offline test)"
+              label="Mock"
             />
           </div>
 
           <div className="grid md:grid-cols-3 gap-3 min-w-0">
             <MetricCard
-              title={`Baseline (${resultsView})`}
-              subtitle="Single direct LLM prompt — intentionally weak"
+              title={`Baseline · ${resultsView}`}
+              subtitle="Direct LLM prompt"
               recall={viewBaseline?.micro_recall}
               precision={viewBaseline?.micro_precision}
               mode={viewBaseline?.mode}
               model={viewBaseline?.model_name}
             />
             <MetricCard
-              title={`Agent pipeline (${resultsView})`}
-              subtitle="Rules + bounded LLM extraction"
+              title={`Agent pipeline · ${resultsView}`}
+              subtitle="Rules + LLM extraction"
               recall={viewAgent?.micro_recall}
               precision={viewAgent?.micro_precision}
               mode={viewAgent?.mode}
               model={viewAgent?.model_name}
             />
             <MetricCard
-              title="Improvement"
+              title="Delta"
               subtitle={formatMetricLabel(data.primary_metric)}
               recall={viewComp?.comparison?.agent_micro_recall ?? viewAgent?.micro_recall}
               extra={`Baseline recall: ${viewComp?.comparison?.baseline_micro_recall ?? viewBaseline?.micro_recall ?? "—"}`}
@@ -189,12 +187,12 @@ export function AdminEvaluationPage() {
             />
           </div>
 
-          {data.last_run ? (
+          {data.last_run && !data.last_run.error ? (
             <LastRunPanel lastRun={data.last_run} />
           ) : null}
 
           <div className="rg-panel p-5 space-y-3 text-sm overflow-hidden">
-            <h3 className="font-semibold">Architecture (plain English)</h3>
+            <h3 className="font-semibold">System architecture</h3>
             <p className="break-words">
               <strong>Baseline:</strong> {data.architecture.baseline}
             </p>
@@ -204,87 +202,77 @@ export function AdminEvaluationPage() {
             <p className="break-words">
               <strong>LLM role:</strong> {data.architecture.llm_role}
             </p>
-            <p className="text-rg-muted text-xs border-t border-rg-border pt-3 break-words">
-              {data.disclaimer}
-            </p>
-          </div>
-
-          <div className="rg-panel p-5 overflow-hidden">
-            <h3 className="font-semibold text-sm mb-2">Current LLM configuration</h3>
-            <dl className="grid sm:grid-cols-2 gap-2 text-sm min-w-0">
-              <Row label="Provider" value={data.current_llm.provider} />
-              <Row label="Model" value={data.current_llm.model || "—"} />
-              <Row label="Base URL" value={data.current_llm.base_url || "—"} />
-              <Row
-                label="API key"
-                value={liveReady ? "Set in .env ✓" : "Not detected — see note below"}
-              />
-            </dl>
-            {!liveReady ? (
-              <div
-                className="mt-3 text-xs p-3 border border-rg-warning/40 rounded break-words"
-                style={{ background: "var(--rg-warning-soft, #fff8e6)" }}
-              >
-                Live buttons stay grey until Django sees <code>LLM_API_KEY</code> in your root{" "}
-                <code>.env</code>. Save the key there, then refresh this page (or restart{" "}
-                <code>runserver</code>).
-              </div>
+            {data.disclaimer ? (
+              <p className="text-rg-muted text-xs border-t border-rg-border pt-3 break-words">
+                {data.disclaimer}
+              </p>
             ) : null}
           </div>
 
           <div className="rg-panel p-5 overflow-hidden">
-            <h3 className="font-semibold text-sm mb-3">Run evaluation from admin</h3>
+            <h3 className="font-semibold text-sm mb-2">LLM configuration</h3>
+            <dl className="grid sm:grid-cols-2 gap-2 text-sm min-w-0">
+              <Row label="Provider" value={data.current_llm.provider} />
+              <Row label="Model" value={data.current_llm.model || "—"} />
+              <Row label="Base URL" value={data.current_llm.base_url || "—"} />
+              <Row label="API key" value={liveReady ? "Configured" : "Not configured"} />
+            </dl>
+            {!liveReady ? (
+              <p className="text-xs text-rg-muted mt-3 break-words">
+                Live evaluation requires an API key in the server environment. Update configuration
+                in Settings, then reload this page.
+              </p>
+            ) : null}
+          </div>
+
+          <div className="rg-panel p-5 overflow-hidden">
+            <h3 className="font-semibold text-sm mb-3">Run evaluation</h3>
             <p className="text-xs text-rg-muted mb-3 break-words">
-              <strong>Mock</strong> = fast offline smoke test (not a hackathon AI claim).{" "}
-              <strong>Live</strong> = calls Groq on all 12 EVAL cases and writes{" "}
-              <code>evaluation/results/*-live.md</code> files.
+              Mock runs use offline deterministic behaviour. Live runs invoke the configured LLM
+              provider across all suite cases.
             </p>
             <div className="flex flex-wrap gap-2">
               <ActionButton
                 variant="secondary"
                 loading={activeRun === "baseline-mock"}
                 success={successRun === "baseline-mock"}
-                successLabel="Baseline done"
+                successLabel="Complete"
                 disabled={isRunning}
                 onClick={() => startRun.mutate({ method: "baseline", mode: "mock" })}
               >
-                Run baseline (mock)
+                Baseline (mock)
               </ActionButton>
               <ActionButton
                 variant="secondary"
                 loading={activeRun === "agent-mock"}
                 success={successRun === "agent-mock"}
-                successLabel="Agent done"
+                successLabel="Complete"
                 disabled={isRunning}
                 onClick={() => startRun.mutate({ method: "agent", mode: "mock" })}
               >
-                Run agent (mock)
+                Agent (mock)
               </ActionButton>
               <ActionButton
                 loading={activeRun === "baseline-live"}
                 success={successRun === "baseline-live"}
-                successLabel="Baseline done"
+                successLabel="Complete"
                 disabled={isRunning || !liveReady}
-                title={liveReady ? undefined : "Set LLM_API_KEY in .env first"}
                 onClick={() => startRun.mutate({ method: "baseline", mode: "live" })}
               >
-                Run baseline (live)
+                Baseline (live)
               </ActionButton>
               <ActionButton
                 loading={activeRun === "agent-live"}
                 success={successRun === "agent-live"}
-                successLabel="Agent done"
+                successLabel="Complete"
                 disabled={isRunning || !liveReady}
-                title={liveReady ? undefined : "Set LLM_API_KEY in .env first"}
                 onClick={() => startRun.mutate({ method: "agent", mode: "live" })}
               >
-                Run agent (live)
+                Agent (live)
               </ActionButton>
             </div>
             {isRunning ? (
-              <p className="text-sm mt-3 text-rg-accent font-medium animate-pulse">
-                Evaluation in progress…
-              </p>
+              <p className="text-sm mt-3 text-rg-accent font-medium">Evaluation in progress…</p>
             ) : null}
             {runMsg ? (
               <p
@@ -302,12 +290,10 @@ export function AdminEvaluationPage() {
             ) : null}
           </div>
 
-          <WhatNextPanel resultsView={resultsView} liveReady={liveReady} />
-
           {viewCases.length > 0 ? (
             <div className="rg-panel overflow-hidden">
               <h3 className="font-semibold text-sm px-5 pt-5 pb-3">
-                Per-case results ({resultsView} agent)
+                Per-case results · {resultsView}
               </h3>
               <div className="overflow-x-auto px-5 pb-5">
                 <table className="w-full text-sm text-left min-w-[320px]">
@@ -334,8 +320,7 @@ export function AdminEvaluationPage() {
             </div>
           ) : (
             <div className="rg-panel p-5 text-sm text-rg-muted">
-              No {resultsView} per-case table yet. Run agent ({resultsView}) to populate scores for
-              all 12 EVAL cases.
+              No per-case results for {resultsView} mode. Run the agent evaluation to generate scores.
             </div>
           )}
         </>
@@ -374,78 +359,20 @@ function LastRunPanel({
   lastRun: NonNullable<Awaited<ReturnType<typeof adminApi.benchmark>>["last_run"]>;
 }) {
   return (
-    <div
-      className="rg-panel p-5 overflow-hidden border-l-4"
-      style={{ borderLeftColor: "var(--rg-ok)" }}
-    >
-      <h3 className="font-semibold text-sm">Last run output</h3>
+    <div className="rg-panel p-5 overflow-hidden">
+      <h3 className="font-semibold text-sm">Latest run</h3>
       <p className="text-xs text-rg-muted mt-1 break-words">
-        {lastRun.method} · {lastRun.mode} · {lastRun.case_count} cases scored
+        {runLabel(lastRun.method, lastRun.mode)} · {lastRun.case_count ?? 0} cases
       </p>
       <dl className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-3 text-sm">
         <Row label="Micro recall" value={formatScore(lastRun.micro_recall)} />
         <Row label="Micro precision" value={formatScore(lastRun.micro_precision)} />
-        <Row label="Claim" value={lastRun.benchmark_claim || "—"} />
-        <Row label="Finished" value={lastRun.finished_at ? lastRun.finished_at.slice(0, 19) : "—"} />
+        <Row label="Mode" value={lastRun.mode ?? "—"} />
+        <Row
+          label="Completed"
+          value={lastRun.finished_at ? lastRun.finished_at.slice(0, 19).replace("T", " ") : "—"}
+        />
       </dl>
-      <p className="text-xs text-rg-muted mt-3 break-all">
-        Files updated: <code>{lastRun.artifact_md}</code>
-        {lastRun.artifact_json ? (
-          <>
-            {" "}
-            · <code>{lastRun.artifact_json}</code>
-          </>
-        ) : null}
-      </p>
-      {lastRun.next_steps?.length ? (
-        <div className="mt-3 pt-3 border-t border-rg-border">
-          <p className="text-xs font-semibold uppercase text-rg-muted mb-2">What to do next</p>
-          <ul className="text-sm space-y-1 list-disc pl-5 break-words">
-            {lastRun.next_steps.map((step) => (
-              <li key={step}>{step}</li>
-            ))}
-          </ul>
-        </div>
-      ) : null}
-    </div>
-  );
-}
-
-function WhatNextPanel({
-  resultsView,
-  liveReady,
-}: {
-  resultsView: ResultsView;
-  liveReady: boolean;
-}) {
-  return (
-    <div className="rg-panel p-5 text-sm overflow-hidden">
-      <h3 className="font-semibold">Recommended flow for your hackathon video</h3>
-      <ol className="mt-2 space-y-2 list-decimal pl-5 text-rg-muted break-words">
-        <li>
-          <strong className="text-rg-ink">Mock (optional):</strong> run agent (mock) to confirm the
-          pipeline works — you just did this if you see green “done”.
-        </li>
-        <li>
-          <strong className="text-rg-ink">Live benchmark:</strong> run baseline (live) then agent
-          (live) — {liveReady ? "buttons enabled above" : "enable by fixing .env + refresh"}.
-        </li>
-        <li>
-          <strong className="text-rg-ink">Show judges:</strong> switch to{" "}
-          <strong>Live results</strong> tab — baseline recall ~0.0, agent recall ~1.0 on 12 cases.
-        </li>
-        <li>
-          <strong className="text-rg-ink">Demo workflow:</strong> clinician login → open{" "}
-          <strong>EVAL-03</strong> → analyse → fix reason → handoff (see{" "}
-          <code>docs/VIDEO_OUTLINE.md</code>).
-        </li>
-      </ol>
-      {resultsView === "mock" ? (
-        <p className="text-xs mt-3 text-rg-warning border-t border-rg-border pt-3 break-words">
-          You are viewing <strong>mock</strong> results. Mock scores are not your hackathon AI claim —
-          use the <strong>Live results</strong> tab or <code>comparison-live.md</code> for judges.
-        </p>
-      ) : null}
     </div>
   );
 }

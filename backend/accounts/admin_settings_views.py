@@ -52,9 +52,7 @@ class SystemSettingsView(APIView):
             {
                 "settings": SystemSettingSerializer(qs, many=True).data,
                 "architecture_note": (
-                    "Baseline = single direct LLM prompt (weak). "
-                    "Agent pipeline = deterministic checklist rules + bounded LLM extraction. "
-                    "Mock mode is not a measured AI benchmark."
+                    "Configure LLM provider, model, and evaluation settings for this workspace."
                 ),
                 "env_fallback": {
                     "LLM_PROVIDER": django_settings.LLM_PROVIDER,

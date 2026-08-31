@@ -2,7 +2,7 @@ import { NavLink, Outlet } from "react-router-dom";
 
 const NAV = [
   { to: "/admin", label: "Overview", end: true },
-  { to: "/admin/evaluation", label: "Baseline & LLM" },
+  { to: "/admin/evaluation", label: "Evaluation" },
   { to: "/admin/settings", label: "Settings" },
   { to: "/admin/referrals", label: "Referrals" },
   { to: "/admin/facilities", label: "Facilities" },
@@ -16,8 +16,7 @@ export function AdminLayout() {
       <div className="mb-6">
         <h1 className="text-2xl font-semibold">Administration</h1>
         <p className="text-sm text-rg-muted mt-1">
-          Custom ReferralGuard admin console. Django Admin remains available for deep model
-          editing if needed.
+          System administration and configuration.
         </p>
       </div>
 

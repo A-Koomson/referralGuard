@@ -359,13 +359,13 @@ export const adminApi = {
         mode: string;
         finished_at: string | null;
         error: string | null;
-        case_count: number;
+        case_count?: number;
         micro_recall: number | null;
         micro_precision: number | null;
         benchmark_claim?: string;
-        artifact_md: string;
-        artifact_json: string;
-        next_steps: string[];
+        artifact_md?: string;
+        artifact_json?: string;
+        comparison_md?: string;
       };
     }>("/api/v1/evaluation/benchmark/"),
   runEvaluation: (method: "baseline" | "agent", mode: "mock" | "live") =>
